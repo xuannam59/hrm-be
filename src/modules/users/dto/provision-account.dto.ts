@@ -9,14 +9,14 @@ import {
   MinLength,
 } from 'class-validator';
 
-class CreateUserDto {
-  @ApiProperty({ example: 'test@yopmail.com' })
+class ProvisionAccountDto {
+  @ApiProperty({ example: 'john.doe@company.com' })
   @IsString()
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: '123456789' })
+  @ApiProperty({ example: '12345678!' })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
@@ -25,19 +25,8 @@ class CreateUserDto {
   @ApiProperty({ example: 4 })
   @Type(() => Number)
   @IsInt()
-  @IsNotEmpty()
-  roleId: number;
-
-  @ApiProperty({ example: 'System Admin' })
-  @IsString()
   @IsOptional()
-  @MinLength(3)
-  displayName?: string;
-
-  @ApiProperty({ example: 1 })
-  @IsInt()
-  @IsOptional()
-  employeeId?: number;
+  roleId?: number;
 }
 
-export default CreateUserDto;
+export default ProvisionAccountDto;

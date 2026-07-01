@@ -1,35 +1,38 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsDate,
+  IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { GenderType } from '@/common/types/employee.type';
+import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
 
 class CreateEmployeeDto {
-  @ApiProperty({ example: 'John Doe' })
+  @ApiProperty({ example: 'John' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
+  @MinLength(1)
   firstName: string;
 
   @ApiProperty({ example: 'Doe' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
+  @MinLength(1)
   lastName: string;
 
-  @ApiProperty({ example: 'Male' })
-  @IsString()
-  @IsNotEmpty()
+  @ApiProperty({ example: GenderType.MALE, enum: GenderType })
   @IsEnum(GenderType)
-  gender: string;
+  gender: GenderType;
 
   @ApiProperty({ example: '1990-01-01' })
+  @Type(() => Date)
   @IsDate()
   @IsOptional()
   birthday?: Date;
@@ -39,13 +42,20 @@ class CreateEmployeeDto {
   @IsOptional()
   phone?: string;
 
-  @ApiProperty({ example: 'Tiên Du, Bắc Ninh' })
+  @ApiProperty({ example: 'nguyen.van@company.com' })
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ example: 'Tien Du, Bac Ninh' })
   @IsString()
   @IsOptional()
   @MinLength(3)
   address?: string;
 
-  @ApiProperty({ example: '1990-01-01' })
+  @ApiProperty({ example: '2026-07-01' })
+  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   hireDate: Date;
@@ -56,10 +66,17 @@ class CreateEmployeeDto {
   @MinLength(3)
   position: string;
 
-  @ApiProperty({ example: '1' })
+  @ApiProperty({ example: 1 })
+  @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
   departmentId: number;
+
+  @ApiProperty()
+  @ValidateNested()
+  @Type(() => ProvisionAccountDto)
+  @IsOptional()
+  account?: ProvisionAccountDto;
 }
 
 export default CreateEmployeeDto;

@@ -15,6 +15,8 @@ import { Body } from '@nestjs/common';
 import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
+import { User } from '@/common/decorators/user.decorator';
+import type { IUser } from '@/common/types/user.type';
 
 @Controller('users')
 export class UsersController {
@@ -28,10 +30,10 @@ export class UsersController {
   }
 
   @Post('create')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.HR)
   @ResponseMessage('Create user successful')
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.createUser(createUserDto);
+  async createUser(@Body() createUserDto: CreateUserDto, @User() actor: IUser) {
+    return this.usersService.createUser(createUserDto, actor);
   }
 
   @Get(':id')

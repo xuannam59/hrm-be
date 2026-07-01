@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsInt,
-  IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
@@ -10,19 +11,26 @@ import {
 class UpdateUserDto {
   @ApiProperty({ example: 'John Doe' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(3)
-  displayName: string;
+  displayName?: string;
 
-  @ApiProperty({ example: '1' })
+  @ApiProperty({ example: 4 })
+  @Type(() => Number)
   @IsInt()
   @IsOptional()
-  roleId: number;
+  roleId?: number;
 
-  @ApiProperty({ example: '1' })
+  @ApiProperty({ example: 1 })
+  @Type(() => Number)
   @IsInt()
   @IsOptional()
-  employeeId: number;
+  employeeId?: number;
+
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  @IsOptional()
+  unlinkEmployee?: boolean;
 }
 
 export default UpdateUserDto;

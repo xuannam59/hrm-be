@@ -1,11 +1,19 @@
 export const ROLE_ID = {
-  EMPLOYEE: 1,
-  ADMIN: 2,
+  ADMIN: 1,
+  HR: 2,
   MANAGER: 3,
-};
+  EMPLOYEE: 4,
+} as const;
 
 export enum Role {
-  EMPLOYEE = 1,
-  ADMIN = 2,
+  ADMIN = 1,
+  HR = 2,
   MANAGER = 3,
+  EMPLOYEE = 4,
 }
+
+export const ROLES_REQUIRING_EMPLOYEE: Role[] = [
+  Role.HR,
+  Role.MANAGER,
+  Role.EMPLOYEE,
+];

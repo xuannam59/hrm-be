@@ -12,6 +12,17 @@ import {
 
 const DEFAULT_PASSWORD = '12345678!';
 
+/** Must match src/common/constants/role.constant.ts */
+const ROLE_ID = {
+  ADMIN: 1,
+  HR: 2,
+  MANAGER: 3,
+  EMPLOYEE: 4,
+} as const;
+
+const fullName = (employee: { firstName: string; lastName: string }) =>
+  `${employee.firstName} ${employee.lastName}`;
+
 const date = (year: number, month: number, day: number) =>
   new Date(year, month - 1, day);
 
@@ -58,16 +69,28 @@ async function main() {
 
     const [adminRole, hrRole, managerRole, employeeRole] = await Promise.all([
       prisma.role.create({
-        data: { name: 'ADMIN', description: 'Quản trị hệ thống' },
+        data: {
+          id: ROLE_ID.ADMIN,
+          name: 'ADMIN',
+          description: 'Quản trị hệ thống',
+        },
       }),
       prisma.role.create({
-        data: { name: 'HR', description: 'Nhân sự' },
+        data: { id: ROLE_ID.HR, name: 'HR', description: 'Nhân sự' },
       }),
       prisma.role.create({
-        data: { name: 'MANAGER', description: 'Quản lý phòng ban' },
+        data: {
+          id: ROLE_ID.MANAGER,
+          name: 'MANAGER',
+          description: 'Quản lý phòng ban',
+        },
       }),
       prisma.role.create({
-        data: { name: 'EMPLOYEE', description: 'Nhân viên' },
+        data: {
+          id: ROLE_ID.EMPLOYEE,
+          name: 'EMPLOYEE',
+          description: 'Nhân viên',
+        },
       }),
     ]);
 
@@ -158,7 +181,6 @@ async function main() {
         gender: 'Nam',
         birthday: date(1985, 3, 15),
         phone: '0901234567',
-        email: 'nguyen.van.an@company.com',
         address: 'Hà Nội',
         hireDate: date(2018, 1, 10),
         position: 'Trưởng phòng Nhân sự',
@@ -175,7 +197,6 @@ async function main() {
         gender: 'Nữ',
         birthday: date(1992, 7, 22),
         phone: '0902345678',
-        email: 'tran.thi.binh@company.com',
         address: 'Hà Nội',
         hireDate: date(2020, 5, 1),
         position: 'Chuyên viên Nhân sự',
@@ -192,7 +213,6 @@ async function main() {
         gender: 'Nam',
         birthday: date(1988, 11, 5),
         phone: '0903456789',
-        email: 'le.minh.cuong@company.com',
         address: 'TP. Hồ Chí Minh',
         hireDate: date(2017, 8, 20),
         position: 'Trưởng phòng Kỹ thuật',
@@ -209,7 +229,6 @@ async function main() {
         gender: 'Nữ',
         birthday: date(1994, 2, 18),
         phone: '0904567890',
-        email: 'pham.thu.dung@company.com',
         address: 'TP. Hồ Chí Minh',
         hireDate: date(2021, 3, 15),
         position: 'Senior Developer',
@@ -226,7 +245,6 @@ async function main() {
         gender: 'Nam',
         birthday: date(1998, 9, 30),
         phone: '0905678901',
-        email: 'hoang.van.em@company.com',
         address: 'Đà Nẵng',
         hireDate: date(2023, 6, 1),
         position: 'Developer',
@@ -243,7 +261,6 @@ async function main() {
         gender: 'Nữ',
         birthday: date(1987, 4, 12),
         phone: '0906789012',
-        email: 'vu.thi.phuong@company.com',
         address: 'Hà Nội',
         hireDate: date(2019, 2, 1),
         position: 'Trưởng phòng Kinh doanh',
@@ -260,7 +277,6 @@ async function main() {
         gender: 'Nam',
         birthday: date(1995, 12, 8),
         phone: '0907890123',
-        email: 'dang.quoc.huy@company.com',
         address: 'Hải Phòng',
         hireDate: date(2022, 9, 10),
         position: 'Nhân viên Kinh doanh',
@@ -277,7 +293,6 @@ async function main() {
         gender: 'Nam',
         birthday: date(1986, 6, 25),
         phone: '0908901234',
-        email: 'bui.minh.khoa@company.com',
         address: 'Hà Nội',
         hireDate: date(2016, 11, 1),
         position: 'Kế toán trưởng',
@@ -308,8 +323,8 @@ async function main() {
     await Promise.all([
       prisma.user.create({
         data: {
-          displayName: 'admin',
-          email: 'admin@company.com',
+          displayName: 'System Admin',
+          email: 'admin@yopmail.com',
           password: hashedPassword,
           roleId: adminRole.id,
           status: UserStatus.ACTIVE,
@@ -317,8 +332,8 @@ async function main() {
       }),
       prisma.user.create({
         data: {
-          displayName: 'hr.manager',
-          email: 'hr@company.com',
+          displayName: fullName(hrManager),
+          email: 'hr@yopmail.com',
           password: hashedPassword,
           roleId: hrRole.id,
           employeeId: hrManager.id,
@@ -327,18 +342,18 @@ async function main() {
       }),
       prisma.user.create({
         data: {
-          displayName: 'hr.staff',
-          email: 'hr.staff@company.com',
+          displayName: fullName(hrStaff),
+          email: 'hr.staff@yopmail.com',
           password: hashedPassword,
-          roleId: employeeRole.id,
+          roleId: hrRole.id,
           employeeId: hrStaff.id,
           status: UserStatus.ACTIVE,
         },
       }),
       prisma.user.create({
         data: {
-          displayName: 'tech.lead',
-          email: 'tech@company.com',
+          displayName: fullName(techLead),
+          email: 'tech@yopmail.com',
           password: hashedPassword,
           roleId: managerRole.id,
           employeeId: techLead.id,
@@ -347,8 +362,8 @@ async function main() {
       }),
       prisma.user.create({
         data: {
-          displayName: 'dev1',
-          email: 'dev1@company.com',
+          displayName: fullName(seniorDev),
+          email: 'dev1@yopmail.com',
           password: hashedPassword,
           roleId: employeeRole.id,
           employeeId: seniorDev.id,
@@ -357,31 +372,11 @@ async function main() {
       }),
       prisma.user.create({
         data: {
-          displayName: 'dev2',
-          email: 'dev2@company.com',
+          displayName: fullName(juniorDev),
+          email: 'dev2@yopmail.com',
           password: hashedPassword,
           roleId: employeeRole.id,
           employeeId: juniorDev.id,
-          status: UserStatus.ACTIVE,
-        },
-      }),
-      prisma.user.create({
-        data: {
-          displayName: 'sales.manager',
-          email: 'sales@company.com',
-          password: hashedPassword,
-          roleId: managerRole.id,
-          employeeId: salesManager.id,
-          status: UserStatus.ACTIVE,
-        },
-      }),
-      prisma.user.create({
-        data: {
-          displayName: 'sales.staff',
-          email: 'sales.staff@company.com',
-          password: hashedPassword,
-          roleId: employeeRole.id,
-          employeeId: salesStaff.id,
           status: UserStatus.ACTIVE,
         },
       }),

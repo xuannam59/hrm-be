@@ -33,6 +33,13 @@ export class AuthService {
         roleId: true,
         displayName: true,
         status: true,
+        employee: {
+          select: {
+            id: true,
+            departmentId: true,
+            employeeCode: true,
+          },
+        },
       },
     });
     if (userInfo && (await compareHashedString(password, userInfo.password))) {
@@ -43,49 +50,39 @@ export class AuthService {
   }
 
   async login(user: IUser, res: Response) {
-    try {
-      const payloadToken: IPayloadToken = {
-        sub: user.id,
+    const payloadToken: IPayloadToken = {
+      sub: user.id,
+      email: user.email,
+      role: user.roleId,
+      status: user.status,
+    };
+
+    const accessToken = this.jwtService.sign(payloadToken);
+
+    const refreshToken = this.createRefreshToken(payloadToken);
+
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      maxAge: ms(
+        this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d'),
+      ),
+    });
+
+    await this.prismaService.user.update({
+      where: {
         email: user.email,
-        role: user.roleId,
-        status: user.status,
-      };
+      },
+      data: {
+        lastLogin: new Date(),
+      },
+    });
 
-      const accessToken = this.jwtService.sign(payloadToken);
+    const result = {
+      access_token: accessToken,
+      user,
+    };
 
-      const refreshToken = this.createRefreshToken(payloadToken);
-
-      res.cookie('refresh_token', refreshToken, {
-        httpOnly: true,
-        maxAge: ms(
-          this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d'),
-        ),
-      });
-
-      await this.prismaService.user.update({
-        where: {
-          email: user.email,
-        },
-        data: {
-          lastLogin: new Date(),
-        },
-      });
-
-      const result = {
-        access_token: accessToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          displayName: user.displayName,
-          roleId: user.roleId,
-          status: user.status,
-        },
-      };
-
-      return result;
-    } catch (error) {
-      throw new BadRequestException('Invalid email or password');
-    }
+    return result;
   }
 
   async getAccount(user: IUser) {
@@ -168,7 +165,6 @@ export class AuthService {
 
   logout(res: Response) {
     res.clearCookie('refresh_token');
-    // đưa token vào redis để xóa
     return 'Logout successful';
   }
 

@@ -102,7 +102,6 @@ model Employee {
   birthday DateTime?
 
   phone   String?
-  email   String? @unique
   address String?
 
   avatar String?
