@@ -1,33 +1,14 @@
-// src/modules/users/dto/search-user-query.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { UserStatus } from 'generated/prisma/client';
+import SearchDtoBase from '@/common/bases/search-dto.base';
+import { Type } from 'class-transformer';
 
-export class SearchUserQueryDto {
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  page?: number;
-
-  @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number;
-
-  @ApiPropertyOptional({ example: 'createdAt' })
+export class SearchUserQueryDto extends SearchDtoBase {
+  @ApiPropertyOptional({ example: 'john' })
   @IsOptional()
   @IsString()
-  sortBy?: string;
-
-  @ApiPropertyOptional({ enum: ['asc', 'desc'], example: 'desc' })
-  @IsOptional()
-  @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc';
+  search?: string;
 
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
@@ -39,9 +20,4 @@ export class SearchUserQueryDto {
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
-
-  @ApiPropertyOptional({ example: 'john' })
-  @IsOptional()
-  @IsString()
-  search?: string;
 }
