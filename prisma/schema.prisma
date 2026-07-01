@@ -1,0 +1,387 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum EmployeeStatus {
+  WORKING
+  RESIGNED
+  MATERNITY
+  RETIRED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  WFH
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InsuranceType {
+  BHXH
+  BHYT
+  BHTN
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  users User[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model User {
+  id          Int    @id @default(autoincrement())
+  displayName String @map("display_name")
+  email       String @unique
+  password    String
+
+  roleId     Int  @map("role_id")
+  employeeId Int? @unique @map("employee_id")
+
+  status    UserStatus @default(ACTIVE)
+  lastLogin DateTime?  @map("last_login")
+
+  role     Role      @relation(fields: [roleId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Department {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  managerId Int? @unique
+
+  manager   Employee?  @relation("DepartmentManager", fields: [managerId], references: [id])
+  employees Employee[]
+
+  histories EmploymentHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Employee {
+  id           Int    @id @default(autoincrement())
+  employeeCode String @unique
+
+  firstName String
+  lastName  String
+
+  gender   String
+  birthday DateTime?
+
+  phone   String?
+  email   String? @unique
+  address String?
+
+  avatar String?
+
+  hireDate DateTime
+
+  position String
+
+  status EmployeeStatus @default(WORKING)
+
+  departmentId Int @map("department_id")
+
+  department Department @relation(fields: [departmentId], references: [id])
+
+  user User?
+
+  managedDepartment Department? @relation("DepartmentManager")
+
+  skills EmployeeSkill[]
+
+  educations Education[]
+
+  experiences Experience[]
+
+  employmentHistories EmploymentHistory[]
+
+  attendances Attendance[]
+
+  leaveRequests LeaveRequest[] @relation("EmployeeLeave")
+
+  approvedLeaves LeaveRequest[] @relation("Approver")
+
+  payrolls Payroll[]
+
+  bonuses Bonus[]
+
+  insurances Insurance[]
+
+  benefits EmployeeBenefit[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Skill {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  employees EmployeeSkill[]
+}
+
+model EmployeeSkill {
+  employeeId Int @map("employee_id")
+  skillId    Int @map("skill_id")
+
+  level String
+
+  experienceYear Int @map("experience_year")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  skill Skill @relation(fields: [skillId], references: [id])
+
+  @@id([employeeId, skillId])
+}
+
+model Education {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  school String
+
+  major String
+
+  degree String
+
+  startDate DateTime
+
+  endDate DateTime?
+
+  gpa Float?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Experience {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  company String
+
+  position String
+
+  startDate DateTime
+
+  endDate DateTime?
+
+  description String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model EmploymentHistory {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  departmentId Int @map("department_id")
+
+  position String
+
+  startDate DateTime
+
+  endDate DateTime?
+
+  reason String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  department Department @relation(fields: [departmentId], references: [id])
+}
+
+model Attendance {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  workDate DateTime @map("work_date")
+
+  checkIn DateTime? @map("check_in")
+
+  checkOut DateTime? @map("check_out")
+
+  workingHours Float @default(0) @map("working_hours")
+
+  overtimeHours Float @default(0) @map("overtime_hours")
+
+  status AttendanceStatus
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, workDate])
+}
+
+model LeaveType {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+
+  paid Boolean
+
+  maxDays Int @map("max_days")
+
+  requests LeaveRequest[]
+}
+
+model LeaveRequest {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  leaveTypeId Int @map("leave_type_id")
+
+  startDate DateTime @map("start_date")
+
+  endDate DateTime @map("end_date")
+
+  reason String?
+
+  status LeaveStatus @default(PENDING)
+
+  approvedBy Int? @map("approved_by")
+
+  approvedDate DateTime? @map("approved_date")
+
+  employee Employee @relation("EmployeeLeave", fields: [employeeId], references: [id])
+
+  approver Employee? @relation("Approver", fields: [approvedBy], references: [id])
+
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+}
+
+model Payroll {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  month Int @map("month")
+
+  year Int @map("year")
+
+  basicSalary Decimal @map("basic_salary") @db.Decimal(15, 2)
+
+  allowance Decimal @default(0) @db.Decimal(15, 2)
+
+  overtimeSalary Decimal @default(0) @map("overtime_salary") @db.Decimal(15, 2)
+
+  bonus Decimal @default(0) @db.Decimal(15, 2)
+
+  deduction Decimal @default(0) @db.Decimal(15, 2)
+
+  insurance Decimal @default(0) @db.Decimal(15, 2)
+
+  tax Decimal @default(0) @db.Decimal(15, 2)
+
+  netSalary Decimal @map("net_salary") @db.Decimal(15, 2)
+
+  paymentDate DateTime? @map("payment_date")
+
+  status String
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, month, year])
+}
+
+model Bonus {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  title String
+
+  amount Decimal @db.Decimal(15, 2)
+
+  bonusDate DateTime @map("bonus_date")
+
+  reason String?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Insurance {
+  id Int @id @default(autoincrement())
+
+  employeeId Int @map("employee_id")
+
+  insuranceNumber String @unique @map("insurance_number")
+
+  type InsuranceType
+
+  provider String
+
+  startDate DateTime @map("start_date")
+
+  endDate DateTime? @map("end_date")
+
+  status String
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Benefit {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+
+  description String?
+
+  employees EmployeeBenefit[]
+}
+
+model EmployeeBenefit {
+  employeeId Int
+
+  benefitId Int
+
+  startDate DateTime @map("start_date")
+
+  endDate DateTime? @map("end_date")
+
+  status String
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  benefit Benefit @relation(fields: [benefitId], references: [id])
+
+  @@id([employeeId, benefitId])
+}
