@@ -9,6 +9,7 @@ import SearchRoleQueryDto from './dto/search-role-query.dto';
 import { Not, Repository } from 'typeorm';
 import { RoleEntity } from './entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ROLE_NAME } from '@/common/constants/role.constant';
 
 @Injectable()
 export class RolesService {
@@ -22,20 +23,19 @@ export class RolesService {
     const pageNumber = page ?? 1;
     const limitNumber = limit ?? 10;
     const sortByField = sortBy ?? 'createdAt';
-    const sortOrderDirection = sortOrder ?? 'desc';
+    const sortOrderDirection = sortOrder ?? 'DESC';
     const skip = (pageNumber - 1) * limitNumber;
-    const where: any = {};
+
+    const queryBuilder = this.roleRepository
+      .createQueryBuilder('role')
+      .orderBy(`role.${sortByField}`, sortOrderDirection)
+      .skip(skip)
+      .take(limitNumber);
+
     if (name) {
-      where.name = name;
+      queryBuilder.andWhere('role.name LIKE :name', { name: `%${name}%` });
     }
-    const [roles, total] = await this.roleRepository.findAndCount({
-      where,
-      skip,
-      take: limitNumber,
-      order: {
-        [sortByField]: sortOrderDirection,
-      },
-    });
+    const [roles, total] = await queryBuilder.getManyAndCount();
     return {
       result: roles,
       pagination: {
@@ -48,17 +48,16 @@ export class RolesService {
   }
 
   async createRole(createRoleDto: CreateRoleDto) {
-    const normalizedName = createRoleDto.name.toUpperCase().trim();
     const roleInfo = await this.roleRepository.findOne({
       where: {
-        name: normalizedName,
+        name: createRoleDto.name,
       },
     });
     if (roleInfo) {
       throw new BadRequestException('Role already exists');
     }
     const newRole = await this.roleRepository.save({
-      name: createRoleDto.name.toUpperCase().trim(),
+      name: createRoleDto.name,
       description: createRoleDto.description
         ? createRoleDto.description.trim()
         : null,
@@ -74,18 +73,21 @@ export class RolesService {
       throw new NotFoundException('Role not found');
     }
 
-    const normalizedName = updateRoleDto.name.toUpperCase().trim();
-    if (normalizedName !== roleInfo.name) {
+    if (roleInfo.name === ROLE_NAME.ADMIN) {
+      throw new BadRequestException('Cannot update admin role');
+    }
+
+    if (updateRoleDto.name !== roleInfo.name) {
       const duplicateRole = await this.roleRepository.findOne({
-        where: { name: normalizedName, id: Not(id) },
+        where: { name: updateRoleDto.name, id: Not(id) },
       });
       if (duplicateRole) {
-        throw new BadRequestException('Role already exists');
+        throw new BadRequestException('Role name already exists');
       }
     }
 
     const updatedRole = this.roleRepository.merge(roleInfo, {
-      name: normalizedName,
+      name: updateRoleDto.name,
       description: updateRoleDto.description
         ? updateRoleDto.description.trim()
         : null,
@@ -97,8 +99,13 @@ export class RolesService {
     const roleInfo = await this.roleRepository.findOne({
       where: { id },
     });
+
     if (!roleInfo) {
       throw new NotFoundException('Role not found');
+    }
+
+    if (roleInfo.name === ROLE_NAME.ADMIN) {
+      throw new BadRequestException('Cannot delete admin role');
     }
 
     const hasAssignedUsers = await this.roleRepository
