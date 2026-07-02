@@ -1,12 +1,14 @@
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
-import { Like, Repository } from 'typeorm';
+import { EntityManager, Like } from 'typeorm';
 
 export async function generateNextEmployeeCode(
-  employeeRepository: Repository<EmployeeEntity>,
+  transactionalEntityManager: EntityManager,
 ): Promise<string> {
-  const employees = await employeeRepository.find({
+  const employees = await transactionalEntityManager.find(EmployeeEntity, {
     where: { employeeCode: Like('EMP%') },
     select: { employeeCode: true },
+    order: { employeeCode: 'DESC' },
+    take: 1,
   });
 
   let max = 0;

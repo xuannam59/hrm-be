@@ -1,14 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { IUser } from '@/common/types/user.type';
 import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
 import CreateEmployeeDto from './dto/create-employee.dto';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import { requireEmployee } from '@/common/utils/user-context.util';
+import {
+  buildDisplayName,
+  requireEmployee,
+} from '@/common/utils/user-context.util';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, DataSource, Repository } from 'typeorm';
 import { EmployeeEntity } from './entities/employee.entity';
 import { DepartmentEntity } from '../departments/entities/department.entity';
 import { ROLE_ID } from '@/common/constants/role.constant';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { UserEntity } from '../users/entities/user.entity';
+import { UserStatus } from '@/common/enums/user-status.enum';
+import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { hashString } from '@/common/utils/crypto.util';
+import { RolesService } from '../roles/roles.service';
+import UpdateEmployeeDto from './dto/update-employee.dto';
+import { generateNextEmployeeCode } from '@/common/utils/employee-code.util';
+import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 
 @Injectable()
 export class EmployeesService {
@@ -17,9 +33,16 @@ export class EmployeesService {
     private readonly employeeRepository: Repository<EmployeeEntity>,
     @InjectRepository(DepartmentEntity)
     private readonly departmentRepository: Repository<DepartmentEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly dataSource: DataSource,
+    private readonly rolesService: RolesService,
   ) {}
 
-  async getAllEmployees(query: SearchEmployeeQueryDto, actor: IUser) {
+  async getAllEmployees(
+    query: SearchEmployeeQueryDto,
+    actor: IUser,
+  ): Promise<IPaginationResponse<EmployeeEntity>> {
     const {
       page,
       limit,
@@ -33,45 +56,74 @@ export class EmployeesService {
     const pageNumber = page ?? 1;
     const limitNumber = limit ?? 10;
     const sortByField = sortBy ?? 'createdAt';
-    const sortOrderDirection = sortOrder ?? 'desc';
+    const sortOrderDirection = sortOrder ?? 'DESC';
     const skip = (pageNumber - 1) * limitNumber;
-    const orderBy = {
-      [sortByField]: sortOrderDirection,
-    };
-    const where: any = {};
+
+    const queryBuilder = this.employeeRepository
+      .createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.user', 'user')
+      .leftJoinAndSelect('employee.department', 'department')
+      .leftJoinAndSelect('user.role', 'role')
+      .select([
+        'employee.id',
+        'employee.employeeCode',
+        'employee.firstName',
+        'employee.lastName',
+        'employee.avatar',
+        'employee.position',
+        'employee.status',
+        'employee.createdAt',
+        'employee.updatedAt',
+        'user.id',
+        'user.email',
+        'user.displayName',
+        'user.status',
+        'user.lastLogin',
+        'role.id',
+        'role.name',
+        'department.id',
+        'department.name',
+      ]);
 
     if (search) {
-      where.OR = [
-        { firstName: { contains: search } },
-        { lastName: { contains: search } },
-        { employeeCode: { contains: search } },
-      ];
+      queryBuilder.orWhere(
+        new Brackets((qb) => {
+          qb.where('employee.firstName LIKE :search', {
+            search: `%${search}%`,
+          });
+          qb.orWhere('employee.lastName LIKE :search', {
+            search: `%${search}%`,
+          });
+          qb.orWhere('employee.employeeCode LIKE :search', {
+            search: `%${search}%`,
+          });
+        }),
+      );
     }
 
     if (actor.roleId === ROLE_ID.MANAGER) {
       const employee = requireEmployee(actor);
-      where.departmentId = employee.departmentId;
+      queryBuilder.andWhere('employee.departmentId = :departmentId', {
+        departmentId: employee.departmentId,
+      });
     } else if (departmentId) {
-      where.departmentId = departmentId;
+      queryBuilder.andWhere('employee.departmentId = :departmentId', {
+        departmentId,
+      });
     }
 
     if (status) {
-      where.status = status;
+      queryBuilder.andWhere('employee.status = :status', { status });
     }
     if (position) {
-      where.position = position;
+      queryBuilder.andWhere('employee.position = :position', { position });
     }
 
-    const [employees, total] = await this.employeeRepository.findAndCount({
-      where,
-      skip,
-      take: limitNumber,
-      order: orderBy,
-      relations: {
-        user: true,
-        department: true,
-      },
-    });
+    const [employees, total] = await queryBuilder
+      .orderBy(`employee.${sortByField}`, sortOrderDirection)
+      .skip(skip)
+      .take(limitNumber)
+      .getManyAndCount();
 
     return {
       result: employees,
@@ -84,15 +136,228 @@ export class EmployeesService {
     };
   }
 
-  async createEmployee(createEmployeeDto: CreateEmployeeDto, actor: IUser) {}
+  async createEmployee(createEmployeeDto: CreateEmployeeDto) {
+    if (
+      createEmployeeDto.account &&
+      createEmployeeDto.account.roleId === ROLE_ID.ADMIN
+    ) {
+      throw new BadRequestException('Admin role cannot be created as employee');
+    }
+
+    const departmentInfo = await this.departmentRepository.findOne({
+      where: { id: createEmployeeDto.departmentId },
+    });
+
+    if (!departmentInfo) {
+      throw new NotFoundException('Department not found');
+    }
+
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        const employeeCode = await generateNextEmployeeCode(
+          transactionalEntityManager,
+        );
+        const employee = transactionalEntityManager.create(EmployeeEntity, {
+          employeeCode: employeeCode,
+          firstName: createEmployeeDto.firstName.trim(),
+          lastName: createEmployeeDto.lastName.trim(),
+          gender: createEmployeeDto.gender,
+          birthday: createEmployeeDto.birthday,
+          phone: createEmployeeDto.phone,
+          address: createEmployeeDto.address,
+          hireDate: createEmployeeDto.hireDate,
+          position: createEmployeeDto.position,
+          departmentId: createEmployeeDto.departmentId,
+          status: createEmployeeDto.status,
+        });
+        await transactionalEntityManager.save(employee);
+
+        if (createEmployeeDto.account) {
+          let userStatus = UserStatus.INACTIVE;
+
+          if (createEmployeeDto.status === EmployeeStatus.WORKING) {
+            userStatus = UserStatus.ACTIVE;
+          }
+
+          const displayName = buildDisplayName(
+            employee.firstName,
+            employee.lastName,
+          );
+
+          const passwordHash = await hashString(
+            createEmployeeDto.account.password,
+          );
+
+          const user = transactionalEntityManager.create(UserEntity, {
+            email: createEmployeeDto.account.email,
+            displayName: displayName,
+            password: passwordHash,
+            roleId: createEmployeeDto.account.roleId,
+            status: userStatus,
+            employeeId: employee.id,
+          });
+          await transactionalEntityManager.save(user);
+          employee.user = {
+            ...user,
+            password: createEmployeeDto.account.password,
+          };
+        }
+
+        return employee;
+      },
+    );
+  }
 
   async provisionAccount(
-    id: number,
+    employeeId: number,
     provisionAccountDto: ProvisionAccountDto,
+  ) {
+    if (provisionAccountDto.roleId === ROLE_ID.ADMIN) {
+      throw new BadRequestException('Admin role cannot be provisioned');
+    }
+
+    await this.rolesService.validateRoleExists(provisionAccountDto.roleId);
+
+    const [employeeInfo, userInfo] = await Promise.all([
+      this.employeeRepository.findOne({
+        where: { id: employeeId },
+        relations: { user: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          status: true,
+          user: {
+            id: true,
+          },
+        },
+      }),
+      this.userRepository.findOne({
+        where: { email: provisionAccountDto.email },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!employeeInfo) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    if (employeeInfo.user) {
+      throw new BadRequestException('Employee already has an account');
+    }
+
+    if (userInfo) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        const displayName = buildDisplayName(
+          employeeInfo.firstName,
+          employeeInfo.lastName,
+        );
+
+        const userStatus =
+          employeeInfo.status === EmployeeStatus.WORKING
+            ? UserStatus.ACTIVE
+            : UserStatus.INACTIVE;
+
+        const passwordHash = await hashString(provisionAccountDto.password);
+
+        const user = transactionalEntityManager.create(UserEntity, {
+          email: provisionAccountDto.email,
+          displayName: displayName,
+          password: passwordHash,
+          roleId: provisionAccountDto.roleId,
+          status: userStatus,
+          employeeId: employeeInfo.id,
+        });
+
+        await transactionalEntityManager.save(user);
+        employeeInfo.user = user;
+        return employeeInfo;
+      },
+    );
+  }
+
+  async updateEmployee(
+    employeeId: number,
+    updateEmployeeDto: UpdateEmployeeDto,
+  ) {
+    const employeeInfo = await this.employeeRepository.findOne({
+      where: { id: employeeId },
+      relations: { user: true },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!employeeInfo) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    if (updateEmployeeDto.departmentId) {
+      const departmentInfo = await this.departmentRepository.findOne({
+        where: { id: updateEmployeeDto.departmentId },
+      });
+      if (!departmentInfo) {
+        throw new NotFoundException('Department not found');
+      }
+    }
+
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        await transactionalEntityManager.update(
+          EmployeeEntity,
+          employeeId,
+          updateEmployeeDto,
+        );
+        return 'Update employee successful';
+      },
+    );
+  }
+
+  async updateProfile(
+    updateProfileDto: UpdateEmployeeProfileDto,
     actor: IUser,
-  ) {}
+  ) {
+    const employeeInfo = requireEmployee(actor);
 
-  async updateEmployee(id: number, updateEmployeeDto: any, ac: IUser) {}
+    if (!employeeInfo) {
+      throw new NotFoundException('Employee not found');
+    }
 
-  async updateProfile(updateProfileDto: any, actor: IUser) {}
+    const dataUpdate: Partial<EmployeeEntity> = {
+      firstName: updateProfileDto.firstName,
+      lastName: updateProfileDto.lastName,
+      gender: updateProfileDto.gender,
+      phone: updateProfileDto.phone,
+      address: updateProfileDto.address,
+      birthday: updateProfileDto.birthday,
+    };
+
+    if (updateProfileDto.avatar) {
+      dataUpdate.avatar = updateProfileDto.avatar;
+    }
+
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        await transactionalEntityManager.update(
+          EmployeeEntity,
+          employeeInfo.id,
+          dataUpdate,
+        );
+
+        const displayName = buildDisplayName(
+          updateProfileDto.firstName,
+          updateProfileDto.lastName,
+        );
+        await transactionalEntityManager.update(UserEntity, actor.id, {
+          displayName: displayName,
+        });
+
+        return 'Update employee profile successful';
+      },
+    );
+  }
 }

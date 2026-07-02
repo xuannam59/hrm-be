@@ -1,16 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEmail,
   IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 
 class ProvisionAccountDto {
-  @ApiProperty({ example: 'john.doe@company.com' })
+  @ApiProperty({ example: 'test123@yopmail.com' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsString()
   @IsNotEmpty()
   @IsEmail()
@@ -25,8 +27,8 @@ class ProvisionAccountDto {
   @ApiProperty({ example: 4 })
   @Type(() => Number)
   @IsInt()
-  @IsOptional()
-  roleId?: number;
+  @IsNotEmpty()
+  roleId: number;
 }
 
 export default ProvisionAccountDto;

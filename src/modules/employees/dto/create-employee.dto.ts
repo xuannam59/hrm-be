@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { GenderType } from '@/common/types/employee.type';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
+import { EmployeeStatus } from '@/common/enums/employee-status.enum';
 
 class CreateEmployeeDto {
   @ApiProperty({ example: 'John' })
@@ -42,12 +43,6 @@ class CreateEmployeeDto {
   @IsOptional()
   phone?: string;
 
-  @ApiProperty({ example: 'nguyen.van@company.com' })
-  @IsString()
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
   @ApiProperty({ example: 'Tien Du, Bac Ninh' })
   @IsString()
   @IsOptional()
@@ -71,6 +66,15 @@ class CreateEmployeeDto {
   @IsInt()
   @IsNotEmpty()
   departmentId: number;
+
+  @ApiProperty({
+    example: EmployeeStatus.WORKING,
+    enum: EmployeeStatus,
+    default: EmployeeStatus.WORKING,
+  })
+  @IsEnum(EmployeeStatus)
+  @IsNotEmpty()
+  status: EmployeeStatus;
 
   @ApiProperty()
   @ValidateNested()

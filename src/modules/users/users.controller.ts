@@ -42,7 +42,7 @@ export class UsersController {
     }
   }
 
-  @Post('create')
+  @Post()
   @Roles(Role.ADMIN, Role.HR)
   @ResponseMessage('Create user successful')
   async createUser(
@@ -58,7 +58,7 @@ export class UsersController {
     }
   }
 
-  @Get('detail/:id')
+  @Get(':id')
   @Roles(Role.ADMIN)
   @ResponseMessage('Get user by id successful')
   async getUserDetail(
@@ -73,7 +73,7 @@ export class UsersController {
     }
   }
 
-  @Patch('update/:id')
+  @Patch(':id')
   @Roles(Role.ADMIN)
   @ResponseMessage('Update user successful')
   async updateUser(

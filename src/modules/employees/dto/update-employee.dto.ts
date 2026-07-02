@@ -2,47 +2,37 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDate,
   IsEnum,
-  IsNotEmpty,
+  IsInt,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
-import { GenderType } from '@/common/types/employee.type';
+import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { Transform, Type } from 'class-transformer';
 
 class UpdateEmployeeDto {
-  @ApiProperty({ example: 'John Doe' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  firstName: string;
-
-  @ApiProperty({ example: 'Doe' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  lastName: string;
-
-  @ApiProperty({ example: 'Male' })
-  @IsString()
-  @IsNotEmpty()
-  @IsEnum(GenderType)
-  gender?: string;
-
-  @ApiProperty({ example: '1990-01-01' })
+  @ApiProperty({ example: '2026-01-01' })
+  @Transform(({ value }) => new Date(value))
   @IsDate()
   @IsOptional()
-  birthday?: Date;
+  hireDate?: Date;
 
-  @ApiProperty({ example: '0901234567' })
-  @IsString()
-  @IsOptional()
-  phone?: string;
-
-  @ApiProperty({ example: 'Tiên Du, Bắc Ninh' })
+  @ApiProperty({ example: 'Software Engineer' })
   @IsString()
   @IsOptional()
   @MinLength(3)
-  address?: string;
+  position?: string;
+
+  @ApiProperty({ enum: EmployeeStatus, example: EmployeeStatus.WORKING })
+  @IsEnum(EmployeeStatus)
+  @IsOptional()
+  status?: EmployeeStatus;
+
+  @ApiProperty({ example: '1' })
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  departmentId?: number;
 }
 
 export default UpdateEmployeeDto;
