@@ -53,7 +53,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @Roles(Role.ADMIN, Role.MANAGER)
+  @ResponseMessage('Logout successful')
   async logout(@Res({ passthrough: true }) res: Response) {
     return this.authService.logout(res);
   }

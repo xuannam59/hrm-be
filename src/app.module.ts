@@ -4,20 +4,22 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { EmployeesModule } from './modules/employees/employees.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { DepartmentsModule } from './modules/departments/departments.module';
+import { DatabaseModule } from './infrastructure/database/database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    DatabaseModule,
     UsersModule,
     AuthModule,
-    PrismaModule,
     EmployeesModule,
     RolesModule,
+    DepartmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

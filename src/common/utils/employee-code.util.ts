@@ -1,11 +1,12 @@
-import { PrismaService } from '@/infrastructure/prisma/prisma.service';
+import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
+import { Like, Repository } from 'typeorm';
 
 export async function generateNextEmployeeCode(
-  prisma: PrismaService,
+  employeeRepository: Repository<EmployeeEntity>,
 ): Promise<string> {
-  const employees = await prisma.employee.findMany({
+  const employees = await employeeRepository.find({
+    where: { employeeCode: Like('EMP%') },
     select: { employeeCode: true },
-    where: { employeeCode: { startsWith: 'EMP' } },
   });
 
   let max = 0;

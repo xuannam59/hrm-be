@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { RolesController } from './roles.controller';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from '@/common/guards/roles.guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RoleEntity } from './entities/role.entity';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([RoleEntity])],
   controllers: [RolesController],
   providers: [RolesService],
+  exports: [RolesService],
 })
 export class RolesModule {}

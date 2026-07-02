@@ -1,6 +1,9 @@
 import {
   Controller,
+  Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -17,39 +20,89 @@ import UpdateUserDto from './dto/update-user.dto';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import { User } from '@/common/decorators/user.decorator';
 import type { IUser } from '@/common/types/user.type';
+import type { UserEntity } from './entities/user.entity';
+import type { IPaginationResponse } from '@/common/types/common.type';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('get-all')
+  @Get('all')
   @Roles(Role.ADMIN)
   @ResponseMessage('Get all users successful')
-  async getAllUsers(@Query() query: SearchUserQueryDto) {
-    return this.usersService.getAllUsers(query);
+  async getAllUsers(
+    @Query() query: SearchUserQueryDto,
+  ): Promise<IPaginationResponse<UserEntity>> {
+    try {
+      return this.usersService.getAllUsers(query);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
+        cause: error,
+      });
+    }
   }
 
   @Post('create')
   @Roles(Role.ADMIN, Role.HR)
   @ResponseMessage('Create user successful')
-  async createUser(@Body() createUserDto: CreateUserDto, @User() actor: IUser) {
-    return this.usersService.createUser(createUserDto, actor);
+  async createUser(
+    @Body() createUserDto: CreateUserDto,
+    @User() actor: IUser,
+  ): Promise<UserEntity> {
+    try {
+      return this.usersService.createUser(createUserDto, actor);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
+        cause: error,
+      });
+    }
   }
 
-  @Get(':id')
+  @Get('detail/:id')
   @Roles(Role.ADMIN)
   @ResponseMessage('Get user by id successful')
-  async getUserDetail(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.getUserDetail(id);
+  async getUserDetail(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserEntity> {
+    try {
+      return this.usersService.getUserDetail(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
+        cause: error,
+      });
+    }
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   @Roles(Role.ADMIN)
   @ResponseMessage('Update user successful')
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
     @Param('id', ParseIntPipe) id: number,
+    @User() actor: IUser,
   ) {
-    return this.usersService.updateUser(updateUserDto, id);
+    try {
+      return this.usersService.updateUser(id, updateUserDto, actor);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
+        cause: error,
+      });
+    }
   }
+
+  // @Delete('delete/:id')
+  // @Roles(Role.ADMIN)
+  // @ResponseMessage('Delete user successful')
+  // async deleteUser(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @User() actor: IUser,
+  // ) {
+  //   try {
+  //     return this.usersService.deleteUser(id, actor);
+  //   } catch (error) {
+  //     throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
+  //       cause: error,
+  //     });
+  //   }
+  // }
 }

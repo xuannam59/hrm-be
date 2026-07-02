@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import SearchDtoBase from '@/common/bases/search-dto.base';
-import { EmployeeStatus } from 'generated/prisma/client';
+import { EmployeeStatus } from '@/common/enums/employee-status.enum';
 import { Type } from 'class-transformer';
 
 export default class SearchEmployeeQueryDto extends SearchDtoBase {

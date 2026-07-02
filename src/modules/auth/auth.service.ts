@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@/infrastructure/prisma/prisma.service';
-import { UserStatus } from 'generated/prisma/client';
+import { UserStatus } from '@/common/enums/user-status.enum';
 import { compareHashedString, hashString } from '@/common/utils/crypto.util';
 import type { IPayloadToken } from '@/common/types/auths.type';
 import { type IUser } from '@/common/types/user.type';
@@ -10,22 +9,27 @@ import { ConfigService } from '@nestjs/config';
 import ms, { type StringValue } from 'ms';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UsersService } from '../users/users.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from '../users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prismaService: PrismaService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
   ) {}
 
   async validateUser(email: string, password: string) {
-    const userInfo = await this.prismaService.user.findUnique({
+    const userInfo = await this.userRepository.findOne({
       where: {
         email,
         status: UserStatus.ACTIVE,
       },
+      relations: { employee: true },
       select: {
         id: true,
         email: true,
@@ -34,11 +38,9 @@ export class AuthService {
         displayName: true,
         status: true,
         employee: {
-          select: {
-            id: true,
-            departmentId: true,
-            employeeCode: true,
-          },
+          id: true,
+          departmentId: true,
+          employeeCode: true,
         },
       },
     });
@@ -68,48 +70,32 @@ export class AuthService {
       ),
     });
 
-    await this.prismaService.user.update({
-      where: {
-        email: user.email,
-      },
-      data: {
-        lastLogin: new Date(),
-      },
+    await this.userRepository.update(user.id, {
+      lastLogin: new Date(),
     });
 
-    const result = {
+    return {
       access_token: accessToken,
-      user,
     };
-
-    return result;
   }
 
   async getAccount(user: IUser) {
     try {
-      const account = await this.prismaService.user.findUnique({
-        where: {
-          id: user.id,
-        },
+      const account = await this.userRepository.findOne({
+        where: { id: user.id },
+        relations: { employee: true },
         select: {
           id: true,
           email: true,
           displayName: true,
-          role: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          status: true,
+          role: true,
           employee: {
-            select: {
-              id: true,
-              employeeCode: true,
-              firstName: true,
-              lastName: true,
-              avatar: true,
-            },
+            id: true,
+            employeeCode: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            departmentId: true,
           },
         },
       });
@@ -117,13 +103,6 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException('User not found');
     }
-  }
-
-  createRefreshToken(payloadToken: IPayloadToken) {
-    return this.jwtService.sign(payloadToken, {
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES', '7d'),
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-    });
   }
 
   async refreshToken(req: Request, res: Response) {
@@ -156,7 +135,9 @@ export class AuthService {
         ),
       });
 
-      return accessToken;
+      return {
+        access_token: accessToken,
+      };
     } catch (error) {
       res.clearCookie('refresh_token');
       throw new BadRequestException('Refresh token is invalid or expired');
@@ -169,9 +150,9 @@ export class AuthService {
   }
 
   async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {
-    const userInfo = await this.prismaService.user.findUnique({
+    const userInfo = await this.userRepository.findOne({
       where: {
-        email: user.email,
+        id: user.id,
       },
       select: {
         id: true,
@@ -201,11 +182,17 @@ export class AuthService {
       );
     }
     const hashedPassword = await hashString(changePasswordDto.newPassword);
-    await this.prismaService.user.update({
-      where: { id: user.id },
-      data: { password: hashedPassword },
+    await this.userRepository.update(userInfo.id, {
+      password: hashedPassword,
     });
 
     return 'Change password successful';
+  }
+
+  private createRefreshToken(payloadToken: IPayloadToken) {
+    return this.jwtService.sign(payloadToken, {
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES', '7d'),
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
   }
 }

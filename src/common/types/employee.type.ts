@@ -1,3 +1,5 @@
+import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+
 export interface IEmployee {
   id: number;
   employeeCode: string;
@@ -11,15 +13,8 @@ export interface IEmployee {
   avatar: string;
   hireDate: Date;
   position: string;
-  status: EmployeeStatusType;
+  status: EmployeeStatus;
   departmentId: number;
-}
-
-export enum EmployeeStatusType {
-  WORKING = 'WORKING',
-  RESIGNED = 'RESIGNED',
-  MATERNITY = 'MATERNITY',
-  RETIRED = 'RETIRED',
 }
 
 export enum GenderType {

@@ -22,10 +22,10 @@ class SearchDtoBase {
   @IsString()
   sortBy?: string;
 
-  @ApiPropertyOptional({ enum: ['asc', 'desc'], example: 'desc' })
+  @ApiPropertyOptional({ enum: ['ASC', 'DESC'], example: 'DESC' })
   @IsOptional()
-  @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc';
+  @IsEnum(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export default SearchDtoBase;

@@ -3,7 +3,12 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  ValidationPipe,
+  VersioningType,
+} from '@nestjs/common';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -41,9 +46,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
 
-  if (configService.get<string>('NODE_ENV') === 'development') {
-    setupSwagger(app);
-  }
+  setupSwagger(app);
 
   try {
     await app.listen(port);

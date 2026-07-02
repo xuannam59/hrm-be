@@ -1,7 +1,13 @@
 import { ROLES_KEY } from '@/common/decorators/roles.decorator';
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@/common/constants/role.constant';
+import { IUser } from '../types/user.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -15,7 +21,16 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.roleId === role);
+    const req = context.switchToHttp().getRequest();
+    const user = req.user as IUser;
+    const isAuthorized = requiredRoles.some((role) => user.roleId === role);
+
+    if (!isAuthorized) {
+      throw new ForbiddenException(
+        'You are not authorized to access this resource',
+      );
+    }
+
+    return true;
   }
 }

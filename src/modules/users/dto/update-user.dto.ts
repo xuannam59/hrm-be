@@ -2,11 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
+import { UserStatus } from '@/common/enums/user-status.enum';
 
 class UpdateUserDto {
   @ApiProperty({ example: 'John Doe' })
@@ -21,16 +23,10 @@ class UpdateUserDto {
   @IsOptional()
   roleId?: number;
 
-  @ApiProperty({ example: 1 })
-  @Type(() => Number)
-  @IsInt()
+  @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
+  @IsEnum(UserStatus)
   @IsOptional()
-  employeeId?: number;
-
-  @ApiProperty({ example: true })
-  @IsBoolean()
-  @IsOptional()
-  unlinkEmployee?: boolean;
+  status?: UserStatus;
 }
 
 export default UpdateUserDto;

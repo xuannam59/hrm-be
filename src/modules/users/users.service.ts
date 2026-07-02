@@ -4,85 +4,83 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@/infrastructure/prisma/prisma.service';
 import { hashString } from '@/common/utils/crypto.util';
 import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
-import ProvisionAccountDto from './dto/provision-account.dto';
-import { EmployeeStatus, Prisma, PrismaClient } from 'generated/prisma/client';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import {
-  Role,
+  ROLE_ID,
   ROLES_REQUIRING_EMPLOYEE,
 } from '@/common/constants/role.constant';
 import { buildDisplayName } from '@/common/utils/user-context.util';
-import { IUser } from '@/common/types/user.type';
-
-type TransactionClient = Omit<
-  PrismaClient,
-  '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
->;
-
+import type { IUser } from '@/common/types/user.type';
+import { Brackets, Repository } from 'typeorm';
+import { UserEntity } from './entities/user.entity';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RolesService } from '../roles/roles.service';
+import { UserStatus } from '@/common/enums/user-status.enum';
 @Injectable()
 export class UsersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(EmployeeEntity)
+    private readonly employeeRepository: Repository<EmployeeEntity>,
+    private readonly rolesService: RolesService,
+  ) {}
 
   async getAllUsers(query: SearchUserQueryDto) {
     const { page, limit, sortBy, sortOrder, roleId, status, search } = query;
     const pageNumber = page ?? 1;
     const limitNumber = limit ?? 10;
     const sortByField = sortBy ?? 'createdAt';
-    const sortOrderDirection = sortOrder ?? 'desc';
+    const sortOrderDirection = sortOrder ?? 'DESC';
     const skip = (pageNumber - 1) * limitNumber;
-    const orderBy = {
-      [sortByField]: sortOrderDirection,
-    };
-    const where: Prisma.UserWhereInput = {};
+
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.employee', 'employee')
+      .select([
+        'user.id',
+        'user.email',
+        'user.displayName',
+        'user.status',
+        'user.lastLogin',
+        'user.createdAt',
+        'role.id',
+        'role.name',
+        'employee.id',
+        'employee.employeeCode',
+        'employee.firstName',
+        'employee.lastName',
+        'employee.avatar',
+      ]);
 
     if (search) {
-      where.OR = [
-        { email: { contains: search } },
-        { displayName: { contains: search } },
-      ];
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('user.email LIKE :search', { search: `%${search}%` });
+          qb.orWhere('user.displayName LIKE :search', {
+            search: `%${search}%`,
+          });
+        }),
+      );
     }
 
     if (roleId) {
-      where.roleId = roleId;
+      queryBuilder.andWhere('user.roleId = :roleId', { roleId });
     }
     if (status) {
-      where.status = status;
+      queryBuilder.andWhere('user.status = :status', { status });
     }
-    const [users, total] = await this.prismaService.$transaction([
-      this.prismaService.user.findMany({
-        where,
-        skip,
-        take: limitNumber,
-        orderBy,
-        select: {
-          id: true,
-          email: true,
-          displayName: true,
-          role: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          employee: {
-            select: {
-              id: true,
-              employeeCode: true,
-              firstName: true,
-              lastName: true,
-              avatar: true,
-            },
-          },
-        },
-      }),
-      this.prismaService.user.count({
-        where,
-      }),
-    ]);
+    const [users, total] = await queryBuilder
+      .orderBy(`user.${sortByField}`, sortOrderDirection)
+      .skip(skip)
+      .take(limitNumber)
+      .getManyAndCount();
+
     return {
       result: users,
       pagination: {
@@ -94,265 +92,172 @@ export class UsersService {
     };
   }
 
-  async createUser(createUserDto: CreateUserDto, actor: IUser) {
+  async createUser(
+    createUserDto: CreateUserDto,
+    actor: IUser,
+  ): Promise<UserEntity> {
     this.assertActorCanAssignRole(actor.roleId, createUserDto.roleId);
-    await this.validateRoleExists(createUserDto.roleId);
+    await this.rolesService.validateRoleExists(createUserDto.roleId);
 
-    if (createUserDto.employeeId) {
-      return this.provisionAccountForEmployee(
-        createUserDto.employeeId,
-        {
-          email: createUserDto.email,
-          password: createUserDto.password,
-          roleId: createUserDto.roleId,
-        },
-        { actorRoleId: actor.roleId },
-      );
-    }
-
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email: createUserDto.email },
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email.trim().toLowerCase() },
     });
+
     if (existingUser) {
       throw new BadRequestException('Email already exists');
     }
 
-    await this.validateUserEmployeeLink(createUserDto.roleId);
+    if (createUserDto.employeeId) {
+      const queryBuilder = this.employeeRepository
+        .createQueryBuilder('employee')
+        .where('employee.id = :id', { id: createUserDto.employeeId })
+        .leftJoinAndSelect('employee.user', 'user')
+        .select([
+          'employee.id',
+          'employee.firstName',
+          'employee.lastName',
+          'user.id',
+        ]);
+      const employee = await queryBuilder.getOne();
 
-    const displayName = createUserDto.displayName?.trim();
-    if (!displayName) {
+      if (!employee) {
+        throw new BadRequestException('EmployeeId is not valid');
+      }
+
+      if (employee.user) {
+        throw new BadRequestException('Employee already has a user account');
+      }
+      createUserDto.displayName = buildDisplayName(
+        employee.firstName,
+        employee.lastName,
+      );
+    }
+
+    if (
+      ROLES_REQUIRING_EMPLOYEE.includes(createUserDto.roleId) &&
+      !createUserDto.employeeId
+    ) {
+      throw new BadRequestException('Employee is required for this role');
+    }
+
+    if (!createUserDto.displayName) {
       throw new BadRequestException(
         'displayName is required when not linking to an employee',
       );
     }
 
-    const newUser = await this.prismaService.user.create({
-      data: {
-        email: createUserDto.email.trim().toLowerCase(),
-        password: await hashString(createUserDto.password),
-        displayName,
-        role: { connect: { id: createUserDto.roleId } },
-      },
-      select: this.userWithEmployeeSelect,
+    const user = this.userRepository.create({
+      email: createUserDto.email.trim().toLowerCase(),
+      password: await hashString(createUserDto.password),
+      displayName: createUserDto.displayName?.trim(),
+      roleId: createUserDto.roleId,
+      employeeId: createUserDto.employeeId,
     });
 
-    return newUser;
+    return this.userRepository.save(user);
   }
 
-  async provisionAccountForEmployee(
-    employeeId: number,
-    dto: ProvisionAccountDto,
-    options?: { actorRoleId?: number; excludeUserId?: number },
-    tx?: TransactionClient,
-  ) {
-    const roleId = dto.roleId ?? Role.EMPLOYEE;
-    this.assertActorCanAssignRole(options?.actorRoleId, roleId);
-    await this.validateRoleExists(roleId);
+  async getUserDetail(id: number): Promise<UserEntity> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id })
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.employee', 'employee')
+      .select([
+        'user.id',
+        'user.email',
+        'user.displayName',
+        'user.status',
+        'user.lastLogin',
+        'user.createdAt',
+        'role.id',
+        'role.name',
+        'employee.id',
+        'employee.employeeCode',
+        'employee.firstName',
+        'employee.lastName',
+        'employee.avatar',
+      ]);
 
-    const employee = await this.validateUserEmployeeLink(
-      roleId,
-      employeeId,
-      options?.excludeUserId,
-    );
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    const email = dto.email.trim().toLowerCase();
-
-    const existingUser = await (tx ?? this.prismaService).user.findUnique({
-      where: { email },
-    });
-    if (existingUser) {
-      throw new BadRequestException('Email already exists');
-    }
-
-    const client = tx ?? this.prismaService;
-    const displayName = buildDisplayName(employee.firstName, employee.lastName);
-
-    const newUser = await client.user.create({
-      data: {
-        email,
-        password: await hashString(dto.password),
-        displayName,
-        role: { connect: { id: roleId } },
-        employee: { connect: { id: employeeId } },
-      },
-      select: this.userWithEmployeeSelect,
-    });
-
-    return newUser;
-  }
-
-  async getUserDetail(id: number) {
-    const userInfo = await this.prismaService.user.findUnique({
-      where: { id },
-      select: this.userWithEmployeeSelect,
-    });
+    const userInfo = await queryBuilder.getOne();
     if (!userInfo) {
       throw new NotFoundException('User not found');
     }
     return userInfo;
   }
 
-  async updateUser(updateUserDto: UpdateUserDto, id: number) {
-    const userInfo = await this.prismaService.user.findUnique({
-      where: { id },
-      include: { employee: true },
-    });
+  async updateUser(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    actor: IUser,
+  ): Promise<string> {
+    if (updateUserDto.roleId) {
+      this.assertActorCanAssignRole(actor.roleId, updateUserDto.roleId);
+    }
+
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :id', { id })
+      .select([
+        'user.id',
+        'user.email',
+        'user.displayName',
+        'user.status',
+        'user.lastLogin',
+        'user.createdAt',
+        'user.roleId',
+        'user.employeeId',
+      ]);
+
+    const userInfo = await queryBuilder.getOne();
+
     if (!userInfo) {
       throw new NotFoundException('User not found');
     }
 
-    const nextRoleId = updateUserDto.roleId ?? userInfo.roleId;
-    let nextEmployeeId = userInfo.employeeId;
-
-    if (updateUserDto.unlinkEmployee) {
-      nextEmployeeId = null;
-    } else if (updateUserDto.employeeId !== undefined) {
-      nextEmployeeId = updateUserDto.employeeId;
-    }
-
-    if (updateUserDto.roleId !== undefined) {
-      await this.validateRoleExists(updateUserDto.roleId);
-    }
-
-    const employee = await this.validateUserEmployeeLink(
-      nextRoleId,
-      nextEmployeeId ?? undefined,
+    const user = this.userRepository.create({
       id,
-    );
+      roleId: updateUserDto.roleId ?? userInfo.roleId,
+      status: updateUserDto.status ?? userInfo.status,
+      displayName: updateUserDto.displayName?.trim() ?? userInfo.displayName,
+    });
 
-    const data: Prisma.UserUpdateInput = {};
-
-    if (updateUserDto.roleId !== undefined) {
-      data.role = { connect: { id: updateUserDto.roleId } };
-    }
-
-    if (updateUserDto.unlinkEmployee) {
-      data.employee = { disconnect: true };
-    } else if (updateUserDto.employeeId !== undefined) {
-      data.employee = { connect: { id: updateUserDto.employeeId } };
-    }
-
-    if (employee) {
-      data.displayName = buildDisplayName(
-        employee.firstName,
-        employee.lastName,
+    if (userInfo.employee) {
+      user.displayName = buildDisplayName(
+        userInfo.employee.firstName,
+        userInfo.employee.lastName,
       );
     } else if (updateUserDto.displayName) {
-      data.displayName = updateUserDto.displayName.trim();
+      user.displayName = updateUserDto.displayName.trim();
     }
-
-    await this.prismaService.user.update({
-      where: { id },
-      data,
-    });
+    await this.userRepository.save(user);
 
     return 'Update user successful';
   }
 
   async findByEmail(email: string) {
-    const user = await this.prismaService.user.findUnique({
+    const user = await this.userRepository.findOne({
       where: { email },
+      relations: {
+        employee: true,
+      },
       select: {
         id: true,
         email: true,
         displayName: true,
         roleId: true,
-        status: true,
-        employee: {
-          select: {
-            id: true,
-            departmentId: true,
-            employeeCode: true,
-          },
-        },
+        employee: true,
       },
     });
     return user;
   }
 
-  private readonly userWithEmployeeSelect = {
-    id: true,
-    email: true,
-    displayName: true,
-    role: {
-      select: {
-        id: true,
-        name: true,
-      },
-    },
-    employee: {
-      select: {
-        id: true,
-        employeeCode: true,
-        firstName: true,
-        lastName: true,
-        avatar: true,
-      },
-    },
-  };
-
   private assertActorCanAssignRole(
     actorRoleId: number | undefined,
     targetRoleId: number,
   ) {
-    if (actorRoleId === Role.HR && targetRoleId === Role.ADMIN) {
+    if (actorRoleId === ROLE_ID.HR && targetRoleId === ROLE_ID.ADMIN) {
       throw new ForbiddenException('HR cannot create or assign admin accounts');
     }
-  }
-
-  private async validateRoleExists(roleId: number) {
-    const role = await this.prismaService.role.findUnique({
-      where: { id: roleId },
-    });
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
-    return role;
-  }
-
-  private async validateUserEmployeeLink(
-    roleId: number,
-    employeeId?: number,
-    excludeUserId?: number,
-  ) {
-    if (ROLES_REQUIRING_EMPLOYEE.includes(roleId) && !employeeId) {
-      throw new BadRequestException(
-        'This role requires linking to an employee',
-      );
-    }
-
-    if (roleId === Role.ADMIN && employeeId) {
-      throw new BadRequestException(
-        'Admin account should not be linked to an employee',
-      );
-    }
-
-    if (!employeeId) {
-      return null;
-    }
-
-    const employee = await this.prismaService.employee.findUnique({
-      where: { id: employeeId },
-      include: { user: true },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    if (employee.user && employee.user.id !== excludeUserId) {
-      throw new BadRequestException('Employee already has a user account');
-    }
-
-    if (employee.status !== EmployeeStatus.WORKING) {
-      throw new BadRequestException(
-        'Cannot link user to a non-working employee',
-      );
-    }
-
-    return employee;
   }
 }

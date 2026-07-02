@@ -3,7 +3,7 @@ export const ROLE_ID = {
   HR: 2,
   MANAGER: 3,
   EMPLOYEE: 4,
-} as const;
+};
 
 export enum Role {
   ADMIN = 1,

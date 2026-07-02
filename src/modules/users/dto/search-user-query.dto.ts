@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { UserStatus } from 'generated/prisma/client';
+import { UserStatus } from '@/common/enums/user-status.enum';
 import SearchDtoBase from '@/common/bases/search-dto.base';
 import { Type } from 'class-transformer';
 
