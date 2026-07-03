@@ -1,6 +1,9 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { IUser } from '@/common/types/user.type';
@@ -39,325 +42,395 @@ export class EmployeesService {
     private readonly rolesService: RolesService,
   ) {}
 
+  private readonly logger = new Logger(EmployeesService.name);
+
   async getAllEmployees(
     query: SearchEmployeeQueryDto,
     actor: IUser,
   ): Promise<IPaginationResponse<EmployeeEntity>> {
-    const {
-      page,
-      limit,
-      sortBy,
-      sortOrder,
-      search,
-      departmentId,
-      status,
-      position,
-    } = query;
-    const pageNumber = page ?? 1;
-    const limitNumber = limit ?? 10;
-    const sortByField = sortBy ?? 'createdAt';
-    const sortOrderDirection = sortOrder ?? 'DESC';
-    const skip = (pageNumber - 1) * limitNumber;
+    try {
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        search,
+        departmentId,
+        status,
+        position,
+      } = query;
+      const pageNumber = page ?? 1;
+      const limitNumber = limit ?? 10;
+      const sortByField = sortBy ?? 'createdAt';
+      const sortOrderDirection = sortOrder ?? 'DESC';
+      const skip = (pageNumber - 1) * limitNumber;
 
-    const queryBuilder = this.employeeRepository
-      .createQueryBuilder('employee')
-      .leftJoinAndSelect('employee.user', 'user')
-      .leftJoinAndSelect('employee.department', 'department')
-      .leftJoinAndSelect('user.role', 'role')
-      .select([
-        'employee.id',
-        'employee.employeeCode',
-        'employee.firstName',
-        'employee.lastName',
-        'employee.avatar',
-        'employee.position',
-        'employee.status',
-        'employee.createdAt',
-        'employee.updatedAt',
-        'user.id',
-        'user.email',
-        'user.displayName',
-        'user.status',
-        'user.lastLogin',
-        'role.id',
-        'role.name',
-        'department.id',
-        'department.name',
-      ]);
+      const queryBuilder = this.employeeRepository
+        .createQueryBuilder('employee')
+        .leftJoinAndSelect('employee.user', 'user')
+        .leftJoinAndSelect('employee.department', 'department')
+        .leftJoinAndSelect('user.role', 'role')
+        .select([
+          'employee.id',
+          'employee.employeeCode',
+          'employee.firstName',
+          'employee.lastName',
+          'employee.avatar',
+          'employee.position',
+          'employee.status',
+          'employee.createdAt',
+          'employee.updatedAt',
+          'user.id',
+          'user.email',
+          'user.displayName',
+          'user.status',
+          'user.lastLogin',
+          'role.id',
+          'role.name',
+          'department.id',
+          'department.name',
+        ]);
 
-    if (search) {
-      queryBuilder.orWhere(
-        new Brackets((qb) => {
-          qb.where('employee.firstName LIKE :search', {
-            search: `%${search}%`,
-          });
-          qb.orWhere('employee.lastName LIKE :search', {
-            search: `%${search}%`,
-          });
-          qb.orWhere('employee.employeeCode LIKE :search', {
-            search: `%${search}%`,
-          });
-        }),
+      if (search) {
+        queryBuilder.orWhere(
+          new Brackets((qb) => {
+            qb.where('employee.firstName LIKE :search', {
+              search: `%${search}%`,
+            });
+            qb.orWhere('employee.lastName LIKE :search', {
+              search: `%${search}%`,
+            });
+            qb.orWhere('employee.employeeCode LIKE :search', {
+              search: `%${search}%`,
+            });
+          }),
+        );
+      }
+
+      if (actor.roleId === ROLE_ID.MANAGER) {
+        const employee = requireEmployee(actor);
+        queryBuilder.andWhere('employee.departmentId = :departmentId', {
+          departmentId: employee.departmentId,
+        });
+      } else if (departmentId) {
+        queryBuilder.andWhere('employee.departmentId = :departmentId', {
+          departmentId,
+        });
+      }
+
+      if (status) {
+        queryBuilder.andWhere('employee.status = :status', { status });
+      }
+      if (position) {
+        queryBuilder.andWhere('employee.position = :position', { position });
+      }
+
+      const [employees, total] = await queryBuilder
+        .orderBy(`employee.${sortByField}`, sortOrderDirection)
+        .skip(skip)
+        .take(limitNumber)
+        .getManyAndCount();
+
+      return {
+        result: employees,
+        pagination: {
+          page: pageNumber,
+          limit: limitNumber,
+          total: total,
+          totalPages: Math.ceil(total / limitNumber),
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
       );
     }
-
-    if (actor.roleId === ROLE_ID.MANAGER) {
-      const employee = requireEmployee(actor);
-      queryBuilder.andWhere('employee.departmentId = :departmentId', {
-        departmentId: employee.departmentId,
-      });
-    } else if (departmentId) {
-      queryBuilder.andWhere('employee.departmentId = :departmentId', {
-        departmentId,
-      });
-    }
-
-    if (status) {
-      queryBuilder.andWhere('employee.status = :status', { status });
-    }
-    if (position) {
-      queryBuilder.andWhere('employee.position = :position', { position });
-    }
-
-    const [employees, total] = await queryBuilder
-      .orderBy(`employee.${sortByField}`, sortOrderDirection)
-      .skip(skip)
-      .take(limitNumber)
-      .getManyAndCount();
-
-    return {
-      result: employees,
-      pagination: {
-        page: pageNumber,
-        limit: limitNumber,
-        total: total,
-        totalPages: Math.ceil(total / limitNumber),
-      },
-    };
   }
 
   async createEmployee(createEmployeeDto: CreateEmployeeDto) {
-    if (
-      createEmployeeDto.account &&
-      createEmployeeDto.account.roleId === ROLE_ID.ADMIN
-    ) {
-      throw new BadRequestException('Admin role cannot be created as employee');
-    }
-
-    const departmentInfo = await this.departmentRepository.findOne({
-      where: { id: createEmployeeDto.departmentId },
-    });
-
-    if (!departmentInfo) {
-      throw new NotFoundException('Department not found');
-    }
-
-    return await this.dataSource.transaction(
-      async (transactionalEntityManager) => {
-        const employeeCode = await generateNextEmployeeCode(
-          transactionalEntityManager,
+    try {
+      if (
+        createEmployeeDto.account &&
+        createEmployeeDto.account.roleId === ROLE_ID.ADMIN
+      ) {
+        throw new BadRequestException(
+          'Admin role cannot be created as employee',
         );
-        const employee = transactionalEntityManager.create(EmployeeEntity, {
-          employeeCode: employeeCode,
-          firstName: createEmployeeDto.firstName.trim(),
-          lastName: createEmployeeDto.lastName.trim(),
-          gender: createEmployeeDto.gender,
-          birthday: createEmployeeDto.birthday,
-          phone: createEmployeeDto.phone,
-          address: createEmployeeDto.address,
-          hireDate: createEmployeeDto.hireDate,
-          position: createEmployeeDto.position,
-          departmentId: createEmployeeDto.departmentId,
-          status: createEmployeeDto.status,
-        });
-        await transactionalEntityManager.save(employee);
+      }
 
-        if (createEmployeeDto.account) {
-          let userStatus = UserStatus.INACTIVE;
+      const departmentInfo = await this.departmentRepository.findOne({
+        where: { id: createEmployeeDto.departmentId },
+      });
 
-          if (createEmployeeDto.status === EmployeeStatus.WORKING) {
-            userStatus = UserStatus.ACTIVE;
-          }
+      if (!departmentInfo) {
+        throw new NotFoundException('Department not found');
+      }
 
-          const displayName = buildDisplayName(
-            employee.firstName,
-            employee.lastName,
+      return await this.dataSource.transaction(
+        async (transactionalEntityManager) => {
+          const employeeCode = await generateNextEmployeeCode(
+            transactionalEntityManager,
           );
-
-          const passwordHash = await hashString(
-            createEmployeeDto.account.password,
-          );
-
-          const user = transactionalEntityManager.create(UserEntity, {
-            email: createEmployeeDto.account.email,
-            displayName: displayName,
-            password: passwordHash,
-            roleId: createEmployeeDto.account.roleId,
-            status: userStatus,
-            employeeId: employee.id,
+          const employee = transactionalEntityManager.create(EmployeeEntity, {
+            employeeCode: employeeCode,
+            firstName: createEmployeeDto.firstName.trim(),
+            lastName: createEmployeeDto.lastName.trim(),
+            gender: createEmployeeDto.gender,
+            birthday: createEmployeeDto.birthday,
+            phone: createEmployeeDto.phone,
+            address: createEmployeeDto.address,
+            hireDate: createEmployeeDto.hireDate,
+            position: createEmployeeDto.position,
+            departmentId: createEmployeeDto.departmentId,
+            status: createEmployeeDto.status,
           });
-          await transactionalEntityManager.save(user);
-          employee.user = {
-            ...user,
-            password: createEmployeeDto.account.password,
-          };
-        }
+          await transactionalEntityManager.save(employee);
 
-        return employee;
-      },
-    );
+          if (createEmployeeDto.account) {
+            let userStatus = UserStatus.INACTIVE;
+
+            if (createEmployeeDto.status === EmployeeStatus.WORKING) {
+              userStatus = UserStatus.ACTIVE;
+            }
+
+            const displayName = buildDisplayName(
+              employee.firstName,
+              employee.lastName,
+            );
+
+            const passwordHash = await hashString(
+              createEmployeeDto.account.password,
+            );
+
+            const user = transactionalEntityManager.create(UserEntity, {
+              email: createEmployeeDto.account.email,
+              displayName: displayName,
+              password: passwordHash,
+              roleId: createEmployeeDto.account.roleId,
+              status: userStatus,
+              employeeId: employee.id,
+            });
+            await transactionalEntityManager.save(user);
+            employee.user = {
+              ...user,
+              password: createEmployeeDto.account.password,
+            };
+          }
+          this.logger.log(
+            `Employee ${employee.firstName} ${employee.lastName} created successfully by ${createEmployeeDto.account?.email}`,
+          );
+          return employee;
+        },
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
   }
 
   async provisionAccount(
     employeeId: number,
     provisionAccountDto: ProvisionAccountDto,
   ) {
-    if (provisionAccountDto.roleId === ROLE_ID.ADMIN) {
-      throw new BadRequestException('Admin role cannot be provisioned');
-    }
+    try {
+      if (provisionAccountDto.roleId === ROLE_ID.ADMIN) {
+        throw new BadRequestException('Admin role cannot be provisioned');
+      }
 
-    await this.rolesService.validateRoleExists(provisionAccountDto.roleId);
+      await this.rolesService.validateRoleExists(provisionAccountDto.roleId);
 
-    const [employeeInfo, userInfo] = await Promise.all([
-      this.employeeRepository.findOne({
-        where: { id: employeeId },
-        relations: { user: true },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          status: true,
-          user: {
+      const [employeeInfo, userInfo] = await Promise.all([
+        this.employeeRepository.findOne({
+          where: { id: employeeId },
+          relations: { user: true },
+          select: {
             id: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            user: {
+              id: true,
+            },
           },
+        }),
+        this.userRepository.findOne({
+          where: { email: provisionAccountDto.email },
+          select: { id: true },
+        }),
+      ]);
+
+      if (!employeeInfo) {
+        throw new NotFoundException('Employee not found');
+      }
+
+      if (employeeInfo.user) {
+        throw new BadRequestException('Employee already has an account');
+      }
+
+      if (userInfo) {
+        throw new BadRequestException('Email already exists');
+      }
+
+      return await this.dataSource.transaction(
+        async (transactionalEntityManager) => {
+          const displayName = buildDisplayName(
+            employeeInfo.firstName,
+            employeeInfo.lastName,
+          );
+
+          const userStatus =
+            employeeInfo.status === EmployeeStatus.WORKING
+              ? UserStatus.ACTIVE
+              : UserStatus.INACTIVE;
+
+          const passwordHash = await hashString(provisionAccountDto.password);
+
+          const user = transactionalEntityManager.create(UserEntity, {
+            email: provisionAccountDto.email,
+            displayName: displayName,
+            password: passwordHash,
+            roleId: provisionAccountDto.roleId,
+            status: userStatus,
+            employeeId: employeeInfo.id,
+          });
+
+          await transactionalEntityManager.save(user);
+          employeeInfo.user = user;
+          this.logger.log(
+            `Employee ${displayName} provisioned account successfully by ${provisionAccountDto.email}`,
+          );
+          return employeeInfo;
         },
-      }),
-      this.userRepository.findOne({
-        where: { email: provisionAccountDto.email },
-        select: { id: true },
-      }),
-    ]);
-
-    if (!employeeInfo) {
-      throw new NotFoundException('Employee not found');
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
     }
-
-    if (employeeInfo.user) {
-      throw new BadRequestException('Employee already has an account');
-    }
-
-    if (userInfo) {
-      throw new BadRequestException('Email already exists');
-    }
-
-    return await this.dataSource.transaction(
-      async (transactionalEntityManager) => {
-        const displayName = buildDisplayName(
-          employeeInfo.firstName,
-          employeeInfo.lastName,
-        );
-
-        const userStatus =
-          employeeInfo.status === EmployeeStatus.WORKING
-            ? UserStatus.ACTIVE
-            : UserStatus.INACTIVE;
-
-        const passwordHash = await hashString(provisionAccountDto.password);
-
-        const user = transactionalEntityManager.create(UserEntity, {
-          email: provisionAccountDto.email,
-          displayName: displayName,
-          password: passwordHash,
-          roleId: provisionAccountDto.roleId,
-          status: userStatus,
-          employeeId: employeeInfo.id,
-        });
-
-        await transactionalEntityManager.save(user);
-        employeeInfo.user = user;
-        return employeeInfo;
-      },
-    );
   }
 
   async updateEmployee(
     employeeId: number,
     updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    const employeeInfo = await this.employeeRepository.findOne({
-      where: { id: employeeId },
-      relations: { user: true },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!employeeInfo) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    if (updateEmployeeDto.departmentId) {
-      const departmentInfo = await this.departmentRepository.findOne({
-        where: { id: updateEmployeeDto.departmentId },
+    try {
+      const employeeInfo = await this.employeeRepository.findOne({
+        where: { id: employeeId },
+        relations: { user: true },
+        select: {
+          id: true,
+        },
       });
-      if (!departmentInfo) {
-        throw new NotFoundException('Department not found');
-      }
-    }
 
-    return await this.dataSource.transaction(
-      async (transactionalEntityManager) => {
-        await transactionalEntityManager.update(
-          EmployeeEntity,
-          employeeId,
-          updateEmployeeDto,
-        );
-        return 'Update employee successful';
-      },
-    );
+      if (!employeeInfo) {
+        throw new NotFoundException('Employee not found');
+      }
+
+      if (updateEmployeeDto.departmentId) {
+        const departmentInfo = await this.departmentRepository.findOne({
+          where: { id: updateEmployeeDto.departmentId },
+        });
+        if (!departmentInfo) {
+          throw new NotFoundException('Department not found');
+        }
+      }
+
+      return await this.dataSource.transaction(
+        async (transactionalEntityManager) => {
+          await transactionalEntityManager.update(
+            EmployeeEntity,
+            employeeId,
+            updateEmployeeDto,
+          );
+          this.logger.log(
+            `Employee ${employeeInfo.firstName} ${employeeInfo.lastName} updated successfully`,
+          );
+          return 'Update employee successful';
+        },
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
   }
 
   async updateProfile(
     updateProfileDto: UpdateEmployeeProfileDto,
     actor: IUser,
   ) {
-    const employeeInfo = requireEmployee(actor);
+    try {
+      const employeeInfo = requireEmployee(actor);
 
-    if (!employeeInfo) {
-      throw new NotFoundException('Employee not found');
+      if (!employeeInfo) {
+        throw new NotFoundException('Employee not found');
+      }
+
+      const dataUpdate: Partial<EmployeeEntity> = {
+        firstName: updateProfileDto.firstName,
+        lastName: updateProfileDto.lastName,
+        gender: updateProfileDto.gender,
+        phone: updateProfileDto.phone,
+        address: updateProfileDto.address,
+        birthday: updateProfileDto.birthday,
+      };
+
+      if (updateProfileDto.avatar) {
+        dataUpdate.avatar = updateProfileDto.avatar;
+      }
+
+      return await this.dataSource.transaction(
+        async (transactionalEntityManager) => {
+          await transactionalEntityManager.update(
+            EmployeeEntity,
+            employeeInfo.id,
+            dataUpdate,
+          );
+
+          const displayName = buildDisplayName(
+            updateProfileDto.firstName,
+            updateProfileDto.lastName,
+          );
+          await transactionalEntityManager.update(UserEntity, actor.id, {
+            displayName: displayName,
+          });
+
+          this.logger.log(
+            `Employee ${displayName} updated profile successfully by ${actor.email}`,
+          );
+          return 'Update employee profile successful';
+        },
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
     }
-
-    const dataUpdate: Partial<EmployeeEntity> = {
-      firstName: updateProfileDto.firstName,
-      lastName: updateProfileDto.lastName,
-      gender: updateProfileDto.gender,
-      phone: updateProfileDto.phone,
-      address: updateProfileDto.address,
-      birthday: updateProfileDto.birthday,
-    };
-
-    if (updateProfileDto.avatar) {
-      dataUpdate.avatar = updateProfileDto.avatar;
-    }
-
-    return await this.dataSource.transaction(
-      async (transactionalEntityManager) => {
-        await transactionalEntityManager.update(
-          EmployeeEntity,
-          employeeInfo.id,
-          dataUpdate,
-        );
-
-        const displayName = buildDisplayName(
-          updateProfileDto.firstName,
-          updateProfileDto.lastName,
-        );
-        await transactionalEntityManager.update(UserEntity, actor.id, {
-          displayName: displayName,
-        });
-
-        return 'Update employee profile successful';
-      },
-    );
   }
 }

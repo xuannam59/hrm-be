@@ -1,34 +1,54 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Role } from '@/common/constants/role.constant';
+import SearchDepartmentQueryDto from './dto/search-department-query.dto';
 
 @Controller('departments')
 export class DepartmentsController {
   constructor(private readonly departmentsService: DepartmentsService) {}
 
   @Post()
-  create(@Body() createDepartmentDto: CreateDepartmentDto) {
-    return this.departmentsService.create(createDepartmentDto);
+  @Roles(Role.ADMIN)
+  @ResponseMessage('Create department successful')
+  async createDepartment(@Body() createDepartmentDto: CreateDepartmentDto) {
+    return this.departmentsService.createDepartment(createDepartmentDto);
   }
 
   @Get()
-  findAll() {
-    return this.departmentsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.departmentsService.findOne(+id);
+  @Roles(Role.ADMIN)
+  @ResponseMessage('Get all departments successful')
+  async getAllDepartments(@Query() query: SearchDepartmentQueryDto) {
+    return this.departmentsService.getAllDepartments(query);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDepartmentDto: UpdateDepartmentDto) {
-    return this.departmentsService.update(+id, updateDepartmentDto);
+  @Roles(Role.ADMIN)
+  @ResponseMessage('Update department successful')
+  async updateDepartment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDepartmentDto: UpdateDepartmentDto,
+  ) {
+    return this.departmentsService.updateDepartment(id, updateDepartmentDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.departmentsService.remove(+id);
+  @Roles(Role.ADMIN)
+  @ResponseMessage('Delete department successful')
+  async removeDepartment(@Param('id', ParseIntPipe) id: number) {
+    return this.departmentsService.removeDepartment(id);
   }
 }

@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserStatus } from '@/common/enums/user-status.enum';
 import { compareHashedString, hashString } from '@/common/utils/crypto.util';
@@ -23,60 +29,88 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
+  private readonly logger = new Logger(AuthService.name);
+
   async validateUser(email: string, password: string) {
-    const userInfo = await this.userRepository.findOne({
-      where: {
-        email,
-        status: UserStatus.ACTIVE,
-      },
-      relations: { employee: true },
-      select: {
-        id: true,
-        email: true,
-        password: true,
-        roleId: true,
-        displayName: true,
-        status: true,
-        employee: {
-          id: true,
-          departmentId: true,
-          employeeCode: true,
+    try {
+      const userInfo = await this.userRepository.findOne({
+        where: {
+          email,
+          status: UserStatus.ACTIVE,
         },
-      },
-    });
-    if (userInfo && (await compareHashedString(password, userInfo.password))) {
-      const { password, ...result } = userInfo;
-      return result;
+        relations: { employee: true },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          roleId: true,
+          displayName: true,
+          status: true,
+          employee: {
+            id: true,
+            departmentId: true,
+            employeeCode: true,
+          },
+        },
+      });
+      if (
+        userInfo &&
+        (await compareHashedString(password, userInfo.password))
+      ) {
+        const { password, ...result } = userInfo;
+        return result;
+      }
+      return null;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
     }
-    return null;
   }
 
   async login(user: IUser, res: Response) {
-    const payloadToken: IPayloadToken = {
-      sub: user.id,
-      email: user.email,
-      role: user.roleId,
-      status: user.status,
-    };
+    try {
+      const payloadToken: IPayloadToken = {
+        sub: user.id,
+        email: user.email,
+        role: user.roleId,
+        status: user.status,
+      };
 
-    const accessToken = this.jwtService.sign(payloadToken);
+      const accessToken = this.jwtService.sign(payloadToken);
 
-    const refreshToken = this.createRefreshToken(payloadToken);
+      const refreshToken = this.createRefreshToken(payloadToken);
 
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      maxAge: ms(
-        this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d'),
-      ),
-    });
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        maxAge: ms(
+          this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d'),
+        ),
+      });
 
-    await this.userRepository.update(user.id, {
-      lastLogin: new Date(),
-    });
+      await this.userRepository.update(user.id, {
+        lastLogin: new Date(),
+      });
 
-    return {
-      access_token: accessToken,
-    };
+      this.logger.log(`User ${user.email} logged in successfully`);
+      return {
+        access_token: accessToken,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
   }
 
   async getAccount(user: IUser) {
@@ -101,7 +135,14 @@ export class AuthService {
       });
       return account;
     } catch (error) {
-      throw new BadRequestException('User not found');
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
     }
   }
 
@@ -140,6 +181,9 @@ export class AuthService {
       };
     } catch (error) {
       res.clearCookie('refresh_token');
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new BadRequestException('Refresh token is invalid or expired');
     }
   }
@@ -150,43 +194,54 @@ export class AuthService {
   }
 
   async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {
-    const userInfo = await this.userRepository.findOne({
-      where: {
-        id: user.id,
-      },
-      select: {
-        id: true,
-        email: true,
-        password: true,
-      },
-    });
+    try {
+      const userInfo = await this.userRepository.findOne({
+        where: {
+          id: user.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+        },
+      });
 
-    if (!userInfo) {
-      throw new BadRequestException('User not found');
-    }
+      if (!userInfo) {
+        throw new BadRequestException('User not found');
+      }
 
-    if (
-      !(await compareHashedString(
-        changePasswordDto.oldPassword,
-        userInfo.password,
-      ))
-    ) {
-      throw new BadRequestException('Old password is incorrect');
-    }
+      if (
+        !(await compareHashedString(
+          changePasswordDto.oldPassword,
+          userInfo.password,
+        ))
+      ) {
+        throw new BadRequestException('Old password is incorrect');
+      }
 
-    if (
-      changePasswordDto.newPassword !== changePasswordDto.confirmNewPassword
-    ) {
-      throw new BadRequestException(
-        'New password and confirm new password do not match',
+      if (
+        changePasswordDto.newPassword !== changePasswordDto.confirmNewPassword
+      ) {
+        throw new BadRequestException(
+          'New password and confirm new password do not match',
+        );
+      }
+      const hashedPassword = await hashString(changePasswordDto.newPassword);
+      await this.userRepository.update(userInfo.id, {
+        password: hashedPassword,
+      });
+      this.logger.log(`User ${userInfo.email} changed password successfully`);
+      return 'Change password successful';
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
       );
     }
-    const hashedPassword = await hashString(changePasswordDto.newPassword);
-    await this.userRepository.update(userInfo.id, {
-      password: hashedPassword,
-    });
-
-    return 'Change password successful';
   }
 
   private createRefreshToken(payloadToken: IPayloadToken) {

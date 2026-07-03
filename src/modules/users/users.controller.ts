@@ -1,9 +1,6 @@
 import {
   Controller,
-  Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -33,13 +30,7 @@ export class UsersController {
   async getAllUsers(
     @Query() query: SearchUserQueryDto,
   ): Promise<IPaginationResponse<UserEntity>> {
-    try {
-      return this.usersService.getAllUsers(query);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.usersService.getAllUsers(query);
   }
 
   @Post()
@@ -49,13 +40,7 @@ export class UsersController {
     @Body() createUserDto: CreateUserDto,
     @User() actor: IUser,
   ): Promise<UserEntity> {
-    try {
-      return this.usersService.createUser(createUserDto, actor);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.usersService.createUser(createUserDto, actor);
   }
 
   @Get(':id')
@@ -64,13 +49,7 @@ export class UsersController {
   async getUserDetail(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserEntity> {
-    try {
-      return this.usersService.getUserDetail(id);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.usersService.getUserDetail(id);
   }
 
   @Patch(':id')
@@ -81,13 +60,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @User() actor: IUser,
   ) {
-    try {
-      return this.usersService.updateUser(id, updateUserDto, actor);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.usersService.updateUser(id, updateUserDto, actor);
   }
 
   // @Delete('delete/:id')

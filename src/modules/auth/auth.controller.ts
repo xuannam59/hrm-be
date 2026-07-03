@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Post,
   Req,
   Res,
@@ -13,13 +11,11 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { User } from '@/common/decorators/user.decorator';
 import { ApiBody } from '@nestjs/swagger';
-import { Role } from '@/common/constants/role.constant';
 import { type IUser } from '@/common/types/user.type';
 import type { Request, Response } from 'express';
 import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Public } from '@/common/decorators/public.decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
 import { ResponseMessage } from '@/common/decorators/public.decorator';
 
 @Controller('auth')
@@ -28,7 +24,6 @@ export class AuthController {
 
   @Public()
   @UseGuards(LocalAuthGuard)
-  @HttpCode(HttpStatus.OK)
   @Post('login')
   @ApiBody({ type: LoginDto })
   @ResponseMessage('Login successful')

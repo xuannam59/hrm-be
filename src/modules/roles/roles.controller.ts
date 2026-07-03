@@ -7,8 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  HttpException,
-  HttpStatus,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { Role } from '@/common/constants/role.constant';
@@ -27,26 +25,14 @@ export class RolesController {
   @Roles(Role.ADMIN)
   @ResponseMessage('Get all roles successful')
   async getAllRoles(@Query() query: SearchRoleQueryDto) {
-    try {
-      return this.rolesService.getAllRoles(query);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.rolesService.getAllRoles(query);
   }
 
   @Post('create')
   @Roles(Role.ADMIN)
   @ResponseMessage('Create role successful')
   async createRole(@Body() createRoleDto: CreateRoleDto) {
-    try {
-      return this.rolesService.createRole(createRoleDto);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.rolesService.createRole(createRoleDto);
   }
 
   @Patch(':id')
@@ -56,25 +42,13 @@ export class RolesController {
     @Body() updateRoleDto: UpdateRoleDto,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    try {
-      return this.rolesService.updateRole(updateRoleDto, id);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.rolesService.updateRole(updateRoleDto, id);
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN)
   @ResponseMessage('Delete role successful')
   async deleteRole(@Param('id', ParseIntPipe) id: number) {
-    try {
-      return this.rolesService.deleteRole(id);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.rolesService.deleteRole(id);
   }
 }

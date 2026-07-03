@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IPayloadToken } from '@/common/types/auths.type';
 import { UsersService } from '@/modules/users/users.service';
@@ -24,6 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: IPayloadToken) {
     const user = await this.usersService.findByEmail(payload.email);
+    if (!user) {
+      throw new UnauthorizedException('User is not valid');
+    }
     return user;
   }
 }

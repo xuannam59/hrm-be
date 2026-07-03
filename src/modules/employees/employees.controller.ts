@@ -35,26 +35,14 @@ export class EmployeesController {
     @Query() query: SearchEmployeeQueryDto,
     @User() actor: IUser,
   ): Promise<IPaginationResponse<EmployeeEntity>> {
-    try {
-      return this.employeesService.getAllEmployees(query, actor);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.employeesService.getAllEmployees(query, actor);
   }
 
   @Post()
   @Roles(Role.ADMIN, Role.HR)
   @ResponseMessage('Create employee successful')
   async createEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {
-    try {
-      return this.employeesService.createEmployee(createEmployeeDto);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.employeesService.createEmployee(createEmployeeDto);
   }
 
   @Post(':id/provision-account')
@@ -64,16 +52,10 @@ export class EmployeesController {
     @Param('id', ParseIntPipe) employeeId: number,
     @Body() provisionAccountDto: ProvisionAccountDto,
   ) {
-    try {
-      return this.employeesService.provisionAccount(
-        employeeId,
-        provisionAccountDto,
-      );
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.employeesService.provisionAccount(
+      employeeId,
+      provisionAccountDto,
+    );
   }
 
   @Patch('/profile')
@@ -82,16 +64,7 @@ export class EmployeesController {
     @Body() updateEmployeeProfileDto: UpdateEmployeeProfileDto,
     @User() actor: IUser,
   ) {
-    try {
-      return this.employeesService.updateProfile(
-        updateEmployeeProfileDto,
-        actor,
-      );
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.employeesService.updateProfile(updateEmployeeProfileDto, actor);
   }
 
   @Patch(':id')
@@ -101,15 +74,6 @@ export class EmployeesController {
     @Param('id', ParseIntPipe) employeeId: number,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    try {
-      return this.employeesService.updateEmployee(
-        employeeId,
-        updateEmployeeDto,
-      );
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
-        cause: error,
-      });
-    }
+    return this.employeesService.updateEmployee(employeeId, updateEmployeeDto);
   }
 }
