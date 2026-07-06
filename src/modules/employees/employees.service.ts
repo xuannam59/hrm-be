@@ -99,7 +99,7 @@ export class EmployeesService {
         ]);
 
       if (search) {
-        queryBuilder.orWhere(
+        queryBuilder.andWhere(
           new Brackets((qb) => {
             qb.where('employee.firstName LIKE :search', {
               search: `%${search}%`,
@@ -159,17 +159,58 @@ export class EmployeesService {
     }
   }
 
-  async createEmployee(createEmployeeDto: CreateEmployeeDto) {
+  async getMyEmployeeProfile(actor: IUser) {
     try {
-      if (
-        createEmployeeDto.account &&
-        createEmployeeDto.account.role === Role.ADMIN
-      ) {
-        throw new BadRequestException(
-          'Admin role cannot be created as employee',
-        );
+      const employeeInfo = requireEmployee(actor);
+
+      const employee = await this.employeeRepository.findOne({
+        where: { id: employeeInfo.id },
+        relations: { user: true, department: true, employmentHistories: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          address: true,
+          phone: true,
+          birthday: true,
+          gender: true,
+          avatar: true,
+          position: true,
+          status: true,
+          department: {
+            id: true,
+            name: true,
+          },
+          employmentHistories: {
+            id: true,
+            position: true,
+            startDate: true,
+            endDate: true,
+          },
+          user: {
+            id: true,
+            email: true,
+            displayName: true,
+            status: true,
+            role: true,
+          },
+        },
+      });
+
+      if (!employee) {
+        throw new NotFoundException('Employee not found');
       }
 
+      return employee;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+    }
+  }
+
+  async createEmployee(createEmployeeDto: CreateEmployeeDto) {
+    try {
       const departmentInfo = await this.departmentRepository.findOne({
         where: { id: createEmployeeDto.departmentId },
       });
@@ -273,10 +314,6 @@ export class EmployeesService {
     provisionAccountDto: ProvisionAccountDto,
   ) {
     try {
-      if (provisionAccountDto.role === Role.ADMIN) {
-        throw new BadRequestException('Admin role cannot be provisioned');
-      }
-
       const [employeeInfo, userInfo] = await Promise.all([
         this.employeeRepository.findOne({
           where: { id: employeeId },
@@ -362,6 +399,9 @@ export class EmployeesService {
         relations: { user: true },
         select: {
           id: true,
+          user: {
+            id: true,
+          },
         },
       });
 
@@ -385,6 +425,20 @@ export class EmployeesService {
             employeeId,
             updateEmployeeDto,
           );
+
+          if (updateEmployeeDto.status && employeeInfo.user) {
+            await transactionalEntityManager.update(
+              UserEntity,
+              employeeInfo.user.id,
+              {
+                status:
+                  updateEmployeeDto.status === EmployeeStatus.WORKING
+                    ? UserStatus.ACTIVE
+                    : UserStatus.INACTIVE,
+              },
+            );
+          }
+
           this.logger.log(
             `Employee ${employeeInfo.firstName} ${employeeInfo.lastName} updated successfully`,
           );

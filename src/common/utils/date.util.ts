@@ -1,0 +1,83 @@
+import {
+  BREAK_TIME_END,
+  BREAK_TIME_START,
+  END_WORK_TIME,
+  START_WORK_TIME,
+} from '@/common/constants/attendance.constant';
+import { BadRequestException } from '@nestjs/common';
+
+export const getTodayWorkDate = (): Date => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
+  return new Date(y, m, d);
+};
+
+export const getTodayDate = (): string => {
+  const workDate = getTodayWorkDate();
+  const y = workDate.getFullYear();
+  const m = String(workDate.getMonth() + 1).padStart(2, '0');
+  const d = String(workDate.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+export const formatLocalTime = (date = new Date()): string => {
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
+
+export const timeToMinutes = (time?: string): number => {
+  if (!time) {
+    return 0;
+  }
+  const [h, m, s = '0'] = time.split(':');
+  return Number(h) * 60 + Number(m) + Number(s) / 60;
+};
+
+export const calculateWorkHours = (
+  checkIn: string,
+  checkOut: string,
+): number => {
+  const startWorkTime = timeToMinutes(START_WORK_TIME);
+  const endWorkTime = timeToMinutes(END_WORK_TIME);
+  const inMinutes = Math.max(startWorkTime, timeToMinutes(checkIn));
+  const outMinutes = Math.min(endWorkTime, timeToMinutes(checkOut));
+
+  if (outMinutes <= inMinutes) {
+    return 0;
+  }
+
+  let total = outMinutes - inMinutes;
+
+  const breakStart = timeToMinutes(BREAK_TIME_START);
+  const breakEnd = timeToMinutes(BREAK_TIME_END);
+
+  if (inMinutes < breakEnd && outMinutes > breakStart) {
+    const overlapStart = Math.max(inMinutes, breakStart);
+    const overlapEnd = Math.min(outMinutes, breakEnd);
+    total -= overlapEnd - overlapStart;
+  }
+
+  const totalHours = Math.round((total / 60) * 100) / 100;
+
+  return totalHours;
+};
+
+export const validateMonth = (month: number) => {
+  if (month < 1 || month > 12) {
+    throw new BadRequestException('Month must be between 1 and 12');
+  }
+};
+
+export const validateDay = (year: number, month: number, day: number) => {
+  validateMonth(month);
+  const lastDay = new Date(year, month, 0).getDate();
+  if (day < 1 || day > lastDay) {
+    throw new BadRequestException(
+      `Day must be between 1 and ${lastDay} for ${month}/${year}`,
+    );
+  }
+};

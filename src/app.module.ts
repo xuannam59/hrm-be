@@ -9,6 +9,7 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { EmployeeHistoriesModule } from './modules/employee-histories/employee-histories.module';
+import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EmployeeHistoriesModule } from './modules/employee-histories/employee-h
     DepartmentsModule,
     AttendanceModule,
     EmployeeHistoriesModule,
+    LeaveRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

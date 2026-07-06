@@ -12,7 +12,7 @@ export interface IUser {
   displayName: string;
   role: Role;
   status: string;
-  employee: IUserEmployee | null;
+  employee: IUserEmployee;
 }
 
 export enum UserStatus {

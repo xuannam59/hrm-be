@@ -5,27 +5,29 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  Unique,
 } from 'typeorm';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import { EmployeeStatus, GenderType } from '@/common/types/employee.type';
 import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
 import { UserEntity } from '@/modules/users/entities/user.entity';
 import { EntityBase } from '@/common/bases/entity.base';
 import { AttendanceEntity } from '@/modules/attendance/entities/attendance.entity';
 import { EmploymentHistoryEntity } from '../../employee-histories/entities/employment-history.entity';
+import { LeaveRequestEntity } from '@/modules/leave-requests/entities/leave-request.entity';
 
 @Entity('Employee')
 export class EmployeeEntity extends EntityBase {
   @Column({ unique: true })
   employeeCode: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   firstName: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   lastName: string;
 
-  @Column()
-  gender: string;
+  @Column({ type: 'enum', enum: GenderType })
+  gender: GenderType;
 
   @Column({ type: 'datetime', nullable: true })
   birthday: Date | null;
@@ -69,8 +71,11 @@ export class EmployeeEntity extends EntityBase {
   employmentHistories: EmploymentHistoryEntity[];
 
   @OneToOne(() => UserEntity, (user) => user.employee)
-  user: UserEntity | null;
+  user: UserEntity;
 
   @OneToOne(() => DepartmentEntity, (department) => department.manager)
   managedDepartment: DepartmentEntity | null;
+
+  @OneToMany(() => LeaveRequestEntity, (leaveRequest) => leaveRequest.employee)
+  leaveRequests: LeaveRequestEntity[];
 }

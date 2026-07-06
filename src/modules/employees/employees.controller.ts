@@ -27,7 +27,7 @@ export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
   @Get('all')
-  @Roles(Role.ADMIN, Role.HR, Role.MANAGER)
+  @Roles(Role.ADMIN, Role.MANAGER)
   @ResponseMessage('Get all employees successful')
   async getAllEmployees(
     @Query() query: SearchEmployeeQueryDto,
@@ -36,15 +36,22 @@ export class EmployeesController {
     return this.employeesService.getAllEmployees(query, actor);
   }
 
+  @Get('me')
+  @Roles(Role.EMPLOYEE, Role.MANAGER)
+  @ResponseMessage('Get my employee profile successful')
+  async getMyEmployeeProfile(@User() actor: IUser) {
+    return this.employeesService.getMyEmployeeProfile(actor);
+  }
+
   @Post()
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Create employee successful')
   async createEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeesService.createEmployee(createEmployeeDto);
   }
 
   @Post(':id/provision-account')
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Provision account successful')
   async provisionAccount(
     @Param('id', ParseIntPipe) employeeId: number,
@@ -66,7 +73,7 @@ export class EmployeesController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Update employee successful')
   async updateEmployee(
     @Param('id', ParseIntPipe) employeeId: number,

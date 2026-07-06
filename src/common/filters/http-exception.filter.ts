@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { IUser } from '../types/user.type';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -23,12 +24,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
+      const user = request.user as IUser | undefined;
       message =
         typeof res === 'string'
           ? res
           : (res as { message: string | string[] }).message;
       this.logger.warn(
-        `${request.method} ${request.url}: ${JSON.stringify(message)}`,
+        `${request.method} ${request.url}: ${user?.email ?? ''} - ${user?.role ?? ''} - ${JSON.stringify(message)}`,
       );
     } else if (exception instanceof Error) {
       this.logger.error(

@@ -23,25 +23,25 @@ export class EmployeeHistoriesController {
   ) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   create(@Body() createEmployeeHistoryDto: CreateEmployeeHistoryDto) {
     return this.employeeHistoriesService.create(createEmployeeHistoryDto);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   findAll(@Query() query: SearchHistoryQueryDto) {
     return this.employeeHistoriesService.findAll(query);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.employeeHistoriesService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEmployeeHistoryDto: UpdateEmployeeHistoryDto,

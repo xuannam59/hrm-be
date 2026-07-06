@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(Role.ADMIN, Role.HR)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Create user successful')
   async createUser(
     @Body() createUserDto: CreateUserDto,

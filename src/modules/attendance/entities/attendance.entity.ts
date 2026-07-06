@@ -1,17 +1,29 @@
 import { EntityBase } from '@/common/bases/entity.base';
+import { AttendanceStatus } from '@/common/types/attendance.type';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
 @Entity('Attendance')
+@Index(['employeeId', 'workDate'])
+@Unique(['employeeId', 'workDate'])
 export class AttendanceEntity extends EntityBase {
-  @Column({ type: 'datetime', name: 'check_time' })
-  checkTime: Date;
-
-  @Column({ type: 'datetime', name: 'work_date' })
-  workDate: Date;
-
   @Column({ name: 'employee_id' })
   employeeId: number;
+
+  @Column({ type: 'date', name: 'work_date' })
+  workDate: Date;
+
+  @Column({ type: 'time', name: 'check_in' })
+  checkIn: string;
+
+  @Column({ type: 'time', name: 'check_out', nullable: true })
+  checkOut?: string;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  workHours: number;
+
+  @Column({ type: 'enum', name: 'status', enum: AttendanceStatus })
+  status: AttendanceStatus;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.attendances)
   @JoinColumn({ name: 'employee_id' })

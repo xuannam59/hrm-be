@@ -108,8 +108,6 @@ export class UsersService {
     actor: IUser,
   ): Promise<UserEntity> {
     try {
-      this.assertActorCanAssignRole(actor.role, createUserDto.role);
-
       const existingUser = await this.userRepository.findOne({
         where: { email: createUserDto.email.trim().toLowerCase() },
       });
@@ -224,10 +222,6 @@ export class UsersService {
     actor: IUser,
   ): Promise<string> {
     try {
-      if (updateUserDto.role) {
-        this.assertActorCanAssignRole(actor.role, updateUserDto.role);
-      }
-
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
         .where('user.id = :id', { id })
@@ -314,8 +308,10 @@ export class UsersService {
     actorRole: Role | undefined,
     targetRole: Role,
   ) {
-    if (actorRole === Role.HR && targetRole === Role.ADMIN) {
-      throw new ForbiddenException('HR cannot create or assign admin accounts');
+    if (actorRole === Role.MANAGER && targetRole === Role.ADMIN) {
+      throw new ForbiddenException(
+        'Manager cannot create or assign admin accounts',
+      );
     }
   }
 }

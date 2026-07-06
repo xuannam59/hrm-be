@@ -1,4 +1,30 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateAttendanceDto } from './create-attendance.dto';
+import { TIME_FORMAT } from '@/common/constants/attendance.constant';
+import { AttendanceStatus } from '@/common/types/attendance.type';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 
-export class UpdateAttendanceDto extends PartialType(CreateAttendanceDto) {}
+export class UpdateAttendanceDto {
+  @ApiPropertyOptional({ example: '08:30:00' })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_FORMAT, {
+    message: 'checkIn must be in the format HH:MM:SS',
+  })
+  checkIn?: string;
+
+  @ApiPropertyOptional({ example: '17:30:00' })
+  @IsOptional()
+  @IsString()
+  @Matches(TIME_FORMAT, {
+    message: 'checkOut must be in the format HH:MM:SS',
+  })
+  checkOut?: string;
+
+  @ApiPropertyOptional({
+    example: AttendanceStatus.PRESENT,
+    enum: AttendanceStatus,
+  })
+  @IsOptional()
+  @IsEnum(AttendanceStatus)
+  status?: AttendanceStatus;
+}

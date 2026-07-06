@@ -31,7 +31,9 @@ export class UserEntity extends EntityBase {
   @Column({ name: 'last_login', type: 'datetime', nullable: true })
   lastLogin: Date | null;
 
-  @OneToOne(() => EmployeeEntity, (employee) => employee.user)
+  @OneToOne(() => EmployeeEntity, (employee) => employee.user, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity | null;
+  employee: EmployeeEntity;
 }
