@@ -5,9 +5,10 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmployeesModule } from './modules/employees/employees.module';
-import { RolesModule } from './modules/roles/roles.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
+import { EmployeeHistoriesModule } from './modules/employee-histories/employee-histories.module';
 
 @Module({
   imports: [
@@ -18,8 +19,9 @@ import { DatabaseModule } from './infrastructure/database/database.module';
     UsersModule,
     AuthModule,
     EmployeesModule,
-    RolesModule,
     DepartmentsModule,
+    AttendanceModule,
+    EmployeeHistoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

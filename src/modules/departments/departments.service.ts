@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { DepartmentEntity } from './entities/department.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { ROLE_ID } from '@/common/constants/role.constant';
+import { Role } from '@/common/constants/role.constant';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
 
 @Injectable()
@@ -28,32 +28,34 @@ export class DepartmentsService {
 
   async createDepartment(createDepartmentDto: CreateDepartmentDto) {
     try {
-      const [employeeInfo, checkManager] = await Promise.all([
-        this.employeeRepository.findOne({
-          where: { id: createDepartmentDto.managerId },
-          relations: { user: true },
-          select: {
-            id: true,
-            user: { id: true, roleId: true },
-          },
-        }),
-        this.departmentRepository.exists({
-          where: { managerId: createDepartmentDto.managerId },
-        }),
-      ]);
+      if (createDepartmentDto.managerId) {
+        const [employeeInfo, checkManager] = await Promise.all([
+          this.employeeRepository.findOne({
+            where: { id: createDepartmentDto.managerId },
+            relations: { user: true },
+            select: {
+              id: true,
+              user: { id: true, role: true },
+            },
+          }),
+          this.departmentRepository.exists({
+            where: { managerId: createDepartmentDto.managerId },
+          }),
+        ]);
 
-      if (!employeeInfo) {
-        throw new NotFoundException('Employee not found');
-      }
+        if (!employeeInfo) {
+          throw new NotFoundException('Employee not found');
+        }
 
-      if (checkManager) {
-        throw new BadRequestException(
-          'Manager already assigned to another department',
-        );
-      }
+        if (checkManager) {
+          throw new BadRequestException(
+            'Manager already assigned to another department',
+          );
+        }
 
-      if (!employeeInfo.user || employeeInfo.user.roleId !== ROLE_ID.MANAGER) {
-        throw new BadRequestException('Employee is not a manager');
+        if (!employeeInfo.user || employeeInfo.user.role !== Role.MANAGER) {
+          throw new BadRequestException('Employee is not a manager');
+        }
       }
 
       const newDepartment = this.departmentRepository.create({
@@ -161,7 +163,7 @@ export class DepartmentsService {
             relations: { user: true },
             select: {
               id: true,
-              user: { id: true, roleId: true },
+              user: { id: true, role: true },
             },
           }),
           this.departmentRepository.exists({
@@ -176,7 +178,7 @@ export class DepartmentsService {
           throw new NotFoundException('Employee not found');
         }
 
-        if (employeeInfo.user && employeeInfo.user.roleId !== ROLE_ID.MANAGER) {
+        if (employeeInfo.user && employeeInfo.user.role !== Role.MANAGER) {
           throw new BadRequestException('Employee is not a manager');
         }
 

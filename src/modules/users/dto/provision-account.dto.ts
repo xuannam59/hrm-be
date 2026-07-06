@@ -1,8 +1,9 @@
+import { Role } from '@/common/constants/role.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsEmail,
-  IsInt,
+  IsEnum,
   IsNotEmpty,
   IsString,
   MinLength,
@@ -24,11 +25,10 @@ class ProvisionAccountDto {
   @MinLength(8)
   password: string;
 
-  @ApiProperty({ example: 4 })
-  @Type(() => Number)
-  @IsInt()
+  @ApiProperty({ example: Role.EMPLOYEE, enum: Role })
+  @IsEnum(Role)
   @IsNotEmpty()
-  roleId: number;
+  role: Role;
 }
 
 export default ProvisionAccountDto;

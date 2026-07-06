@@ -1,20 +1,10 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
+import { EntityBase } from '@/common/bases/entity.base';
+import { EmploymentHistoryEntity } from '@/modules/employee-histories/entities/employment-history.entity';
 
 @Entity('Department')
-export class DepartmentEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class DepartmentEntity extends EntityBase {
   @Column({ unique: true })
   name: string;
 
@@ -31,9 +21,9 @@ export class DepartmentEntity {
   @OneToMany(() => EmployeeEntity, (employee) => employee.department)
   employees: EmployeeEntity[];
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  @OneToMany(
+    () => EmploymentHistoryEntity,
+    (employmentHistory) => employmentHistory.department,
+  )
+  employmentHistories: EmploymentHistoryEntity[];
 }

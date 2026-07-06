@@ -18,16 +18,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, DataSource, Repository } from 'typeorm';
 import { EmployeeEntity } from './entities/employee.entity';
 import { DepartmentEntity } from '../departments/entities/department.entity';
-import { ROLE_ID } from '@/common/constants/role.constant';
+import { Role } from '@/common/constants/role.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
 import { UserEntity } from '../users/entities/user.entity';
-import { UserStatus } from '@/common/enums/user-status.enum';
-import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { UserStatus } from '@/common/types/user.type';
+import { EmployeeStatus } from '@/common/types/employee.type';
 import { hashString } from '@/common/utils/crypto.util';
-import { RolesService } from '../roles/roles.service';
 import UpdateEmployeeDto from './dto/update-employee.dto';
 import { generateNextEmployeeCode } from '@/common/utils/employee-code.util';
 import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
+import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
 
 @Injectable()
 export class EmployeesService {
@@ -38,8 +38,9 @@ export class EmployeesService {
     private readonly departmentRepository: Repository<DepartmentEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(EmploymentHistoryEntity)
+    private readonly employmentHistoryRepository: Repository<EmploymentHistoryEntity>,
     private readonly dataSource: DataSource,
-    private readonly rolesService: RolesService,
   ) {}
 
   private readonly logger = new Logger(EmployeesService.name);
@@ -69,7 +70,10 @@ export class EmployeesService {
         .createQueryBuilder('employee')
         .leftJoinAndSelect('employee.user', 'user')
         .leftJoinAndSelect('employee.department', 'department')
-        .leftJoinAndSelect('user.role', 'role')
+        .leftJoinAndSelect(
+          'employee.employmentHistories',
+          'employmentHistories',
+        )
         .select([
           'employee.id',
           'employee.employeeCode',
@@ -85,10 +89,13 @@ export class EmployeesService {
           'user.displayName',
           'user.status',
           'user.lastLogin',
-          'role.id',
-          'role.name',
+          'user.role',
           'department.id',
           'department.name',
+          'employmentHistories.id',
+          'employmentHistories.position',
+          'employmentHistories.startDate',
+          'employmentHistories.endDate',
         ]);
 
       if (search) {
@@ -107,7 +114,7 @@ export class EmployeesService {
         );
       }
 
-      if (actor.roleId === ROLE_ID.MANAGER) {
+      if (actor.role === Role.MANAGER) {
         const employee = requireEmployee(actor);
         queryBuilder.andWhere('employee.departmentId = :departmentId', {
           departmentId: employee.departmentId,
@@ -156,7 +163,7 @@ export class EmployeesService {
     try {
       if (
         createEmployeeDto.account &&
-        createEmployeeDto.account.roleId === ROLE_ID.ADMIN
+        createEmployeeDto.account.role === Role.ADMIN
       ) {
         throw new BadRequestException(
           'Admin role cannot be created as employee',
@@ -169,6 +176,17 @@ export class EmployeesService {
 
       if (!departmentInfo) {
         throw new NotFoundException('Department not found');
+      }
+
+      if (createEmployeeDto.account) {
+        const userInfo = await this.userRepository.findOne({
+          where: { email: createEmployeeDto.account.email },
+          select: { id: true },
+        });
+
+        if (userInfo) {
+          throw new BadRequestException('Email already exists');
+        }
       }
 
       return await this.dataSource.transaction(
@@ -191,6 +209,17 @@ export class EmployeesService {
           });
           await transactionalEntityManager.save(employee);
 
+          const employmentHistory = transactionalEntityManager.create(
+            EmploymentHistoryEntity,
+            {
+              employeeId: employee.id,
+              departmentId: createEmployeeDto.departmentId,
+              position: createEmployeeDto.position,
+              startDate: createEmployeeDto.hireDate,
+            },
+          );
+          await transactionalEntityManager.save(employmentHistory);
+
           if (createEmployeeDto.account) {
             let userStatus = UserStatus.INACTIVE;
 
@@ -211,7 +240,7 @@ export class EmployeesService {
               email: createEmployeeDto.account.email,
               displayName: displayName,
               password: passwordHash,
-              roleId: createEmployeeDto.account.roleId,
+              role: createEmployeeDto.account.role,
               status: userStatus,
               employeeId: employee.id,
             });
@@ -244,11 +273,9 @@ export class EmployeesService {
     provisionAccountDto: ProvisionAccountDto,
   ) {
     try {
-      if (provisionAccountDto.roleId === ROLE_ID.ADMIN) {
+      if (provisionAccountDto.role === Role.ADMIN) {
         throw new BadRequestException('Admin role cannot be provisioned');
       }
-
-      await this.rolesService.validateRoleExists(provisionAccountDto.roleId);
 
       const [employeeInfo, userInfo] = await Promise.all([
         this.employeeRepository.findOne({
@@ -300,7 +327,7 @@ export class EmployeesService {
             email: provisionAccountDto.email,
             displayName: displayName,
             password: passwordHash,
-            roleId: provisionAccountDto.roleId,
+            role: provisionAccountDto.role,
             status: userStatus,
             employeeId: employeeInfo.id,
           });

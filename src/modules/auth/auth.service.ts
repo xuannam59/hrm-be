@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserStatus } from '@/common/enums/user-status.enum';
+import { UserStatus } from '@/common/types/user.type';
 import { compareHashedString, hashString } from '@/common/utils/crypto.util';
 import type { IPayloadToken } from '@/common/types/auths.type';
 import { type IUser } from '@/common/types/user.type';
@@ -18,6 +18,7 @@ import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { Role } from '@/common/constants/role.constant';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,7 @@ export class AuthService {
           id: true,
           email: true,
           password: true,
-          roleId: true,
+          role: true,
           displayName: true,
           status: true,
           employee: {
@@ -78,7 +79,7 @@ export class AuthService {
       const payloadToken: IPayloadToken = {
         sub: user.id,
         email: user.email,
-        role: user.roleId,
+        role: user.role,
         status: user.status,
       };
 
@@ -117,7 +118,7 @@ export class AuthService {
     try {
       const account = await this.userRepository.findOne({
         where: { id: user.id },
-        relations: { employee: true },
+        relations: { employee: { department: true } },
         select: {
           id: true,
           email: true,
@@ -129,7 +130,10 @@ export class AuthService {
             firstName: true,
             lastName: true,
             avatar: true,
-            departmentId: true,
+            department: {
+              id: true,
+              name: true,
+            },
           },
         },
       });
@@ -162,7 +166,7 @@ export class AuthService {
       const payloadToken: IPayloadToken = {
         email: user.email,
         sub: user.id,
-        role: user.roleId,
+        role: user.role,
         status: user.status,
       };
 

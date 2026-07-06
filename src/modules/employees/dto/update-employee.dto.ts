@@ -7,7 +7,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { EmployeeStatus } from '@/common/types/employee.type';
 import { Transform, Type } from 'class-transformer';
 
 class UpdateEmployeeDto {

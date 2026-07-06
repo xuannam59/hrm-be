@@ -1,7 +1,8 @@
+import { Role } from '@/common/constants/role.constant';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
   IsEmail,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -22,11 +23,11 @@ class CreateUserDto {
   @MinLength(8)
   password: string;
 
-  @ApiProperty({ example: 4 })
-  @Type(() => Number)
-  @IsInt()
+  @ApiProperty({ example: 'ADMIN' })
+  @IsString()
   @IsNotEmpty()
-  roleId: number;
+  @IsEnum(Role)
+  role: Role;
 
   @ApiProperty({ example: 'System Admin' })
   @IsString()

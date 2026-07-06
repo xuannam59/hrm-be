@@ -12,7 +12,7 @@ import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import {
-  ROLE_ID,
+  Role,
   ROLES_REQUIRING_EMPLOYEE,
 } from '@/common/constants/role.constant';
 import { buildDisplayName } from '@/common/utils/user-context.util';
@@ -21,7 +21,6 @@ import { Brackets, Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RolesService } from '../roles/roles.service';
 @Injectable()
 export class UsersService {
   constructor(
@@ -29,14 +28,13 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(EmployeeEntity)
     private readonly employeeRepository: Repository<EmployeeEntity>,
-    private readonly rolesService: RolesService,
   ) {}
 
   private readonly logger = new Logger(UsersService.name);
 
   async getAllUsers(query: SearchUserQueryDto) {
     try {
-      const { page, limit, sortBy, sortOrder, roleId, status, search } = query;
+      const { page, limit, sortBy, sortOrder, role, status, search } = query;
       const pageNumber = page ?? 1;
       const limitNumber = limit ?? 10;
       const sortByField = sortBy ?? 'createdAt';
@@ -45,7 +43,6 @@ export class UsersService {
 
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
-        .leftJoinAndSelect('user.role', 'role')
         .leftJoinAndSelect('user.employee', 'employee')
         .select([
           'user.id',
@@ -54,8 +51,7 @@ export class UsersService {
           'user.status',
           'user.lastLogin',
           'user.createdAt',
-          'role.id',
-          'role.name',
+          'user.role',
           'employee.id',
           'employee.employeeCode',
           'employee.firstName',
@@ -74,8 +70,8 @@ export class UsersService {
         );
       }
 
-      if (roleId) {
-        queryBuilder.andWhere('user.roleId = :roleId', { roleId });
+      if (role) {
+        queryBuilder.andWhere('user.role = :role', { role });
       }
       if (status) {
         queryBuilder.andWhere('user.status = :status', { status });
@@ -112,8 +108,7 @@ export class UsersService {
     actor: IUser,
   ): Promise<UserEntity> {
     try {
-      this.assertActorCanAssignRole(actor.roleId, createUserDto.roleId);
-      await this.rolesService.validateRoleExists(createUserDto.roleId);
+      this.assertActorCanAssignRole(actor.role, createUserDto.role);
 
       const existingUser = await this.userRepository.findOne({
         where: { email: createUserDto.email.trim().toLowerCase() },
@@ -150,7 +145,7 @@ export class UsersService {
       }
 
       if (
-        ROLES_REQUIRING_EMPLOYEE.includes(createUserDto.roleId) &&
+        ROLES_REQUIRING_EMPLOYEE.includes(createUserDto.role) &&
         !createUserDto.employeeId
       ) {
         throw new BadRequestException('Employee is required for this role');
@@ -166,7 +161,7 @@ export class UsersService {
         email: createUserDto.email.trim().toLowerCase(),
         password: await hashString(createUserDto.password),
         displayName: createUserDto.displayName?.trim(),
-        roleId: createUserDto.roleId,
+        role: createUserDto.role,
         employeeId: createUserDto.employeeId,
       });
 
@@ -190,7 +185,6 @@ export class UsersService {
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
         .where('user.id = :id', { id })
-        .leftJoinAndSelect('user.role', 'role')
         .leftJoinAndSelect('user.employee', 'employee')
         .select([
           'user.id',
@@ -199,8 +193,7 @@ export class UsersService {
           'user.status',
           'user.lastLogin',
           'user.createdAt',
-          'role.id',
-          'role.name',
+          'user.role',
           'employee.id',
           'employee.employeeCode',
           'employee.firstName',
@@ -231,13 +224,14 @@ export class UsersService {
     actor: IUser,
   ): Promise<string> {
     try {
-      if (updateUserDto.roleId) {
-        this.assertActorCanAssignRole(actor.roleId, updateUserDto.roleId);
+      if (updateUserDto.role) {
+        this.assertActorCanAssignRole(actor.role, updateUserDto.role);
       }
 
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
         .where('user.id = :id', { id })
+        .leftJoinAndSelect('user.employee', 'employee')
         .select([
           'user.id',
           'user.email',
@@ -245,8 +239,11 @@ export class UsersService {
           'user.status',
           'user.lastLogin',
           'user.createdAt',
-          'user.roleId',
+          'user.role',
           'user.employeeId',
+          'employee.id',
+          'employee.firstName',
+          'employee.lastName',
         ]);
 
       const userInfo = await queryBuilder.getOne();
@@ -257,7 +254,7 @@ export class UsersService {
 
       const user = this.userRepository.create({
         id,
-        roleId: updateUserDto.roleId ?? userInfo.roleId,
+        role: updateUserDto.role ?? userInfo.role,
         status: updateUserDto.status ?? userInfo.status,
         displayName: updateUserDto.displayName?.trim() ?? userInfo.displayName,
       });
@@ -296,7 +293,7 @@ export class UsersService {
           id: true,
           email: true,
           displayName: true,
-          roleId: true,
+          role: true,
           employee: true,
         },
       });
@@ -314,10 +311,10 @@ export class UsersService {
   }
 
   private assertActorCanAssignRole(
-    actorRoleId: number | undefined,
-    targetRoleId: number,
+    actorRole: Role | undefined,
+    targetRole: Role,
   ) {
-    if (actorRoleId === ROLE_ID.HR && targetRoleId === ROLE_ID.ADMIN) {
+    if (actorRole === Role.HR && targetRole === Role.ADMIN) {
       throw new ForbiddenException('HR cannot create or assign admin accounts');
     }
   }

@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsDate,
-  IsEmail,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -13,7 +12,7 @@ import {
 } from 'class-validator';
 import { GenderType } from '@/common/types/employee.type';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { EmployeeStatus } from '@/common/types/employee.type';
 
 class CreateEmployeeDto {
   @ApiProperty({ example: 'John' })

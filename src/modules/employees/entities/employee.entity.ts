@@ -1,22 +1,20 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
-import { EmployeeStatus } from '@/common/enums/employee-status.enum';
+import { EmployeeStatus } from '@/common/types/employee.type';
 import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
 import { UserEntity } from '@/modules/users/entities/user.entity';
+import { EntityBase } from '@/common/bases/entity.base';
+import { AttendanceEntity } from '@/modules/attendance/entities/attendance.entity';
+import { EmploymentHistoryEntity } from '../../employee-histories/entities/employment-history.entity';
 
 @Entity('Employee')
-export class EmployeeEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class EmployeeEntity extends EntityBase {
   @Column({ unique: true })
   employeeCode: string;
 
@@ -61,15 +59,18 @@ export class EmployeeEntity {
   @JoinColumn({ name: 'department_id' })
   department: DepartmentEntity;
 
+  @OneToMany(() => AttendanceEntity, (attendance) => attendance.employee)
+  attendances: AttendanceEntity[];
+
+  @OneToMany(
+    () => EmploymentHistoryEntity,
+    (employmentHistory) => employmentHistory.employee,
+  )
+  employmentHistories: EmploymentHistoryEntity[];
+
   @OneToOne(() => UserEntity, (user) => user.employee)
   user: UserEntity | null;
 
   @OneToOne(() => DepartmentEntity, (department) => department.manager)
   managedDepartment: DepartmentEntity | null;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

@@ -27,8 +27,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         typeof res === 'string'
           ? res
           : (res as { message: string | string[] }).message;
+      this.logger.warn(
+        `${request.method} ${request.url}: ${JSON.stringify(message)}`,
+      );
     } else if (exception instanceof Error) {
-      message = exception.message;
       this.logger.error(
         `${request.method} ${request.url}: ${message}`,
         exception.stack,

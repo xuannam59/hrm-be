@@ -6,13 +6,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmployeeEntity } from './entities/employee.entity';
 import { DepartmentEntity } from '../departments/entities/department.entity';
 import { UserEntity } from '../users/entities/user.entity';
-import { RolesModule } from '../roles/roles.module';
+import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([EmployeeEntity, DepartmentEntity, UserEntity]),
-    RolesModule,
+    TypeOrmModule.forFeature([
+      EmployeeEntity,
+      DepartmentEntity,
+      UserEntity,
+      EmploymentHistoryEntity,
+    ]),
   ],
   controllers: [EmployeesController],
   providers: [EmployeesService],

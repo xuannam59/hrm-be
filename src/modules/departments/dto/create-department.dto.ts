@@ -17,6 +17,6 @@ export class CreateDepartmentDto {
   @ApiProperty({ example: 1 })
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  @IsNotEmpty()
-  managerId: number;
+  @IsOptional()
+  managerId?: number;
 }

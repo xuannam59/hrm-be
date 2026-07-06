@@ -1,14 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  MinLength,
-} from 'class-validator';
-import { UserStatus } from '@/common/enums/user-status.enum';
+import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { UserStatus } from '@/common/types/user.type';
+import { Role } from '@/common/constants/role.constant';
 
 class UpdateUserDto {
   @ApiProperty({ example: 'John Doe' })
@@ -17,11 +10,11 @@ class UpdateUserDto {
   @MinLength(3)
   displayName?: string;
 
-  @ApiProperty({ example: 4 })
-  @Type(() => Number)
-  @IsInt()
+  @ApiProperty({ example: 'ADMIN' })
+  @IsString()
   @IsOptional()
-  roleId?: number;
+  @IsEnum(Role)
+  role?: Role;
 
   @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
   @IsEnum(UserStatus)
