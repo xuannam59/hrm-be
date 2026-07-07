@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { UserStatus } from '@/common/types/user.type';
+import { EUserStatus } from '@/common/types/user.type';
 import SearchDtoBase from '@/common/bases/search-dto.base';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 
 export class SearchUserQueryDto extends SearchDtoBase {
   @ApiPropertyOptional({ example: 'john' })
@@ -10,13 +10,13 @@ export class SearchUserQueryDto extends SearchDtoBase {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ example: Role.EMPLOYEE, enum: Role })
+  @ApiPropertyOptional({ example: ERole.EMPLOYEE, enum: ERole })
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsEnum(ERole)
+  role?: ERole;
 
-  @ApiPropertyOptional({ enum: UserStatus, example: UserStatus.ACTIVE })
+  @ApiPropertyOptional({ enum: EUserStatus, example: EUserStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(UserStatus)
-  status?: UserStatus;
+  @IsEnum(EUserStatus)
+  status?: EUserStatus;
 }

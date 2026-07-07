@@ -6,12 +6,20 @@ import {
 } from '@/common/constants/attendance.constant';
 import { BadRequestException } from '@nestjs/common';
 
+export const LEAVE_REQUEST_MAX_PAST_DAYS = 7;
+
 export const getTodayWorkDate = (): Date => {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
   const d = now.getDate();
   return new Date(y, m, d);
+};
+
+export const getEarliestLeaveRequestDate = (): Date => {
+  const earliest = getTodayWorkDate();
+  earliest.setDate(earliest.getDate() - LEAVE_REQUEST_MAX_PAST_DAYS + 1);
+  return earliest;
 };
 
 export const getTodayDate = (): string => {
@@ -80,4 +88,17 @@ export const validateDay = (year: number, month: number, day: number) => {
       `Day must be between 1 and ${lastDay} for ${month}/${year}`,
     );
   }
+};
+
+export const getNumberOfLeaveDays = (
+  startDate: Date,
+  endDate: Date,
+): number => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
 };

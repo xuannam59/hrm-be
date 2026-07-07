@@ -1,4 +1,4 @@
-import { GenderType } from '@/common/types/employee.type';
+import { EGenderType } from '@/common/types/employee.type';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
@@ -21,10 +21,10 @@ class UpdateEmployeeProfileDto {
   @IsNotEmpty()
   lastName: string;
 
-  @ApiProperty({ example: GenderType.MALE, enum: GenderType })
-  @IsEnum(GenderType)
+  @ApiProperty({ example: EGenderType.MALE, enum: EGenderType })
+  @IsEnum(EGenderType)
   @IsNotEmpty()
-  gender: GenderType;
+  gender: EGenderType;
 
   @ApiProperty({ example: '0901234567' })
   @IsString()

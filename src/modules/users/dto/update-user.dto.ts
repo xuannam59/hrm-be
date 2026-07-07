@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-import { UserStatus } from '@/common/types/user.type';
-import { Role } from '@/common/constants/role.constant';
+import { EUserStatus } from '@/common/types/user.type';
+import { ERole } from '@/common/constants/role.constant';
 
 class UpdateUserDto {
   @ApiProperty({ example: 'John Doe' })
@@ -13,13 +13,13 @@ class UpdateUserDto {
   @ApiProperty({ example: 'ADMIN' })
   @IsString()
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsEnum(ERole)
+  role?: ERole;
 
-  @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
-  @IsEnum(UserStatus)
+  @ApiProperty({ enum: EUserStatus, example: EUserStatus.ACTIVE })
+  @IsEnum(EUserStatus)
   @IsOptional()
-  status?: UserStatus;
+  status?: EUserStatus;
 }
 
 export default UpdateUserDto;

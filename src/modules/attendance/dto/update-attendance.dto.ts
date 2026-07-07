@@ -1,5 +1,5 @@
 import { TIME_FORMAT } from '@/common/constants/attendance.constant';
-import { AttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 
@@ -21,10 +21,10 @@ export class UpdateAttendanceDto {
   checkOut?: string;
 
   @ApiPropertyOptional({
-    example: AttendanceStatus.PRESENT,
-    enum: AttendanceStatus,
+    example: EAttendanceStatus.PRESENT,
+    enum: EAttendanceStatus,
   })
   @IsOptional()
-  @IsEnum(AttendanceStatus)
-  status?: AttendanceStatus;
+  @IsEnum(EAttendanceStatus)
+  status?: EAttendanceStatus;
 }

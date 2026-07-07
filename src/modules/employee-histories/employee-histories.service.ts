@@ -276,7 +276,7 @@ export class EmployeeHistoriesService {
       if (!employmentHistory) {
         throw new NotFoundException('Employment history not found');
       }
-      await this.employmentHistoryRepository.delete(employmentHistoryId);
+      await this.employmentHistoryRepository.softDelete(employmentHistoryId);
       this.logger.log(
         `Employment history deleted successfully for employee ${employmentHistory.employeeId}`,
       );

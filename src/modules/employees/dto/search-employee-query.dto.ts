@@ -1,10 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import SearchDtoBase from '@/common/bases/search-dto.base';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import BaseSearchDto from '@/common/bases/search-dto.base';
+import { EEmployeeStatus } from '@/common/types/employee.type';
 import { Type } from 'class-transformer';
 
-export default class SearchEmployeeQueryDto extends SearchDtoBase {
+export default class SearchEmployeeQueryDto extends BaseSearchDto {
   @ApiPropertyOptional({ example: 'John Doe' })
   @IsOptional()
   @IsString()
@@ -17,12 +17,12 @@ export default class SearchEmployeeQueryDto extends SearchDtoBase {
   departmentId?: number;
 
   @ApiPropertyOptional({
-    example: EmployeeStatus.WORKING,
-    enum: EmployeeStatus,
+    example: EEmployeeStatus.WORKING,
+    enum: EEmployeeStatus,
   })
   @IsOptional()
-  @IsEnum(EmployeeStatus)
-  status?: EmployeeStatus;
+  @IsEnum(EEmployeeStatus)
+  status?: EEmployeeStatus;
 
   @ApiPropertyOptional({ example: 'Software Engineer' })
   @IsOptional()

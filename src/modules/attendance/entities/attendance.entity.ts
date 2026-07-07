@@ -1,5 +1,5 @@
 import { EntityBase } from '@/common/bases/entity.base';
-import { AttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
@@ -22,8 +22,8 @@ export class AttendanceEntity extends EntityBase {
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   workHours: number;
 
-  @Column({ type: 'enum', name: 'status', enum: AttendanceStatus })
-  status: AttendanceStatus;
+  @Column({ type: 'enum', name: 'status', enum: EAttendanceStatus })
+  status: EAttendanceStatus;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.attendances)
   @JoinColumn({ name: 'employee_id' })

@@ -1,4 +1,8 @@
-import { CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  DeleteDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UpdateDateColumn } from 'typeorm';
 
 export class EntityBase {
@@ -10,4 +14,7 @@ export class EntityBase {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

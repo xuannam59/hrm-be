@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
-class SearchDtoBase {
+class BaseSearchDto {
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
   @Type(() => Number)
@@ -28,4 +28,4 @@ class SearchDtoBase {
   sortOrder?: 'ASC' | 'DESC';
 }
 
-export default SearchDtoBase;
+export default BaseSearchDto;

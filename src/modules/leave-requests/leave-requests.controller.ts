@@ -6,56 +6,93 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { LeaveRequestsService } from './leave-requests.service';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import { UpdateLeaveRequestDto } from './dto/update-leave-request.dto';
+import {
+  UpdateMyLeaveRequestDto,
+  UpdateLeaveRequestStatusDto,
+} from './dto/update-leave-request.dto';
 import { User } from '@/common/decorators/user.decorator';
 import type { IUser } from '@/common/types/user.type';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
+import {
+  SearchLeaveQueryDto,
+  SearchMyLeaveQueryDto,
+} from './dto/search-leave-query.dto';
 
 @Controller('leave-requests')
 export class LeaveRequestsController {
   constructor(private readonly leaveRequestsService: LeaveRequestsService) {}
 
   @Post()
-  create(@Body() createLeaveRequestDto: CreateLeaveRequestDto) {
-    return this.leaveRequestsService.create(createLeaveRequestDto);
+  @Roles(ERole.EMPLOYEE, ERole.MANAGER)
+  create(
+    @Body() createLeaveRequestDto: CreateLeaveRequestDto,
+    @User() actor: IUser,
+  ) {
+    return this.leaveRequestsService.create(createLeaveRequestDto, actor);
   }
 
   @Get()
-  findAll() {
-    return this.leaveRequestsService.findAll();
+  @Roles(ERole.MANAGER, ERole.ADMIN)
+  findAll(
+    @Query() searchLeaveQueryDto: SearchLeaveQueryDto,
+    @User() actor: IUser,
+  ) {
+    return this.leaveRequestsService.findAll(searchLeaveQueryDto, actor);
   }
 
   @Get('me')
-  getMyLeaveRequests(@User() actor: IUser) {
-    return this.leaveRequestsService.getMyLeaveRequests(actor);
+  getMyLeaveRequests(
+    @Query() searchLeaveQueryDto: SearchMyLeaveQueryDto,
+    @User() actor: IUser,
+  ) {
+    return this.leaveRequestsService.getMyLeaveRequests(
+      searchLeaveQueryDto,
+      actor,
+    );
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number, @User() actor: IUser) {
+    return this.leaveRequestsService.findOne(id, actor);
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateLeaveRequestDto: UpdateLeaveRequestDto,
+  @Roles(ERole.EMPLOYEE, ERole.MANAGER)
+  updateMyRequest(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLeaveRequestDto: UpdateMyLeaveRequestDto,
+    @User() actor: IUser,
   ) {
-    return this.leaveRequestsService.update(+id, updateLeaveRequestDto);
+    return this.leaveRequestsService.updateMyRequest(
+      id,
+      updateLeaveRequestDto,
+      actor,
+    );
   }
 
   @Patch(':id/status')
-  @Roles(Role.MANAGER)
+  @Roles(ERole.MANAGER, ERole.ADMIN)
   updateStatus(
-    @Param('id') id: string,
-    @Body() updateLeaveRequestStatusDto: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLeaveRequestStatusDto: UpdateLeaveRequestStatusDto,
+    @User() actor: IUser,
   ) {
     return this.leaveRequestsService.updateStatus(
-      +id,
+      id,
       updateLeaveRequestStatusDto,
+      actor,
     );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.leaveRequestsService.remove(+id);
+  @Roles(ERole.MANAGER, ERole.EMPLOYEE)
+  remove(@Param('id', ParseIntPipe) id: number, @User() actor: IUser) {
+    return this.leaveRequestsService.remove(id, actor);
   }
 }

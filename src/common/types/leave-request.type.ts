@@ -1,13 +1,11 @@
-export enum LeaveRequestStatus {
+export enum ELeaveRequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
 }
 
-export enum LeaveType {
-  VACATION = 'VACATION',
-  SICK_LEAVE = 'SICK_LEAVE',
-  PERSONAL_DAY = 'PERSONAL_DAY',
-  WORK_FROM_HOME = 'WORK_FROM_HOME',
+export enum ELeaveType {
+  ANNUAL_LEAVE = 'ANNUAL_LEAVE',
+  UNPAID_LEAVE = 'UNPAID_LEAVE',
   OTHER = 'OTHER',
 }

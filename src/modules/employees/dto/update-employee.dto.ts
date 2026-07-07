@@ -7,7 +7,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
 import { Transform, Type } from 'class-transformer';
 
 class UpdateEmployeeDto {
@@ -23,10 +23,10 @@ class UpdateEmployeeDto {
   @MinLength(3)
   position?: string;
 
-  @ApiProperty({ enum: EmployeeStatus, example: EmployeeStatus.WORKING })
-  @IsEnum(EmployeeStatus)
+  @ApiProperty({ enum: EEmployeeStatus, example: EEmployeeStatus.WORKING })
+  @IsEnum(EEmployeeStatus)
   @IsOptional()
-  status?: EmployeeStatus;
+  status?: EEmployeeStatus;
 
   @ApiProperty({ example: '1' })
   @Type(() => Number)

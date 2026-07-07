@@ -18,11 +18,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, DataSource, Repository } from 'typeorm';
 import { EmployeeEntity } from './entities/employee.entity';
 import { DepartmentEntity } from '../departments/entities/department.entity';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
 import { UserEntity } from '../users/entities/user.entity';
-import { UserStatus } from '@/common/types/user.type';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import { EUserStatus } from '@/common/types/user.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
 import { hashString } from '@/common/utils/crypto.util';
 import UpdateEmployeeDto from './dto/update-employee.dto';
 import { generateNextEmployeeCode } from '@/common/utils/employee-code.util';
@@ -114,7 +114,7 @@ export class EmployeesService {
         );
       }
 
-      if (actor.role === Role.MANAGER) {
+      if (actor.role === ERole.MANAGER) {
         const employee = requireEmployee(actor);
         queryBuilder.andWhere('employee.departmentId = :departmentId', {
           departmentId: employee.departmentId,
@@ -262,10 +262,10 @@ export class EmployeesService {
           await transactionalEntityManager.save(employmentHistory);
 
           if (createEmployeeDto.account) {
-            let userStatus = UserStatus.INACTIVE;
+            let userStatus = EUserStatus.INACTIVE;
 
-            if (createEmployeeDto.status === EmployeeStatus.WORKING) {
-              userStatus = UserStatus.ACTIVE;
+            if (createEmployeeDto.status === EEmployeeStatus.WORKING) {
+              userStatus = EUserStatus.ACTIVE;
             }
 
             const displayName = buildDisplayName(
@@ -354,9 +354,9 @@ export class EmployeesService {
           );
 
           const userStatus =
-            employeeInfo.status === EmployeeStatus.WORKING
-              ? UserStatus.ACTIVE
-              : UserStatus.INACTIVE;
+            employeeInfo.status === EEmployeeStatus.WORKING
+              ? EUserStatus.ACTIVE
+              : EUserStatus.INACTIVE;
 
           const passwordHash = await hashString(provisionAccountDto.password);
 
@@ -432,9 +432,9 @@ export class EmployeesService {
               employeeInfo.user.id,
               {
                 status:
-                  updateEmployeeDto.status === EmployeeStatus.WORKING
-                    ? UserStatus.ACTIVE
-                    : UserStatus.INACTIVE,
+                  updateEmployeeDto.status === EEmployeeStatus.WORKING
+                    ? EUserStatus.ACTIVE
+                    : EUserStatus.INACTIVE,
               },
             );
           }

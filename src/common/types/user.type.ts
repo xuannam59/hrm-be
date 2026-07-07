@@ -1,4 +1,4 @@
-import { Role } from '../constants/role.constant';
+import { ERole } from '../constants/role.constant';
 
 export interface IUserEmployee {
   id: number;
@@ -10,12 +10,12 @@ export interface IUser {
   id: number;
   email: string;
   displayName: string;
-  role: Role;
-  status: string;
+  role: ERole;
+  status: EUserStatus;
   employee: IUserEmployee;
 }
 
-export enum UserStatus {
+export enum EUserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   LOCKED = 'LOCKED',

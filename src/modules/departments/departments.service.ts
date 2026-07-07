@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { DepartmentEntity } from './entities/department.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class DepartmentsService {
           );
         }
 
-        if (!employeeInfo.user || employeeInfo.user.role !== Role.MANAGER) {
+        if (!employeeInfo.user || employeeInfo.user.role !== ERole.MANAGER) {
           throw new BadRequestException('Employee is not a manager');
         }
       }
@@ -178,7 +178,7 @@ export class DepartmentsService {
           throw new NotFoundException('Employee not found');
         }
 
-        if (employeeInfo.user && employeeInfo.user.role !== Role.MANAGER) {
+        if (employeeInfo.user && employeeInfo.user.role !== ERole.MANAGER) {
           throw new BadRequestException('Employee is not a manager');
         }
 
@@ -225,7 +225,7 @@ export class DepartmentsService {
         throw new NotFoundException('Department not found');
       }
 
-      await this.departmentRepository.delete(id);
+      await this.departmentRepository.softDelete(id);
 
       this.logger.log(`Department ${departmentInfo.name} deleted successfully`);
       return 'Delete department successful';

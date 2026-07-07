@@ -1,11 +1,11 @@
-export enum AttendanceStatus {
+export enum EAttendanceStatus {
   PRESENT = 'PRESENT',
   ABSENT = 'ABSENT',
   LATE = 'LATE',
   WORK_FROM_HOME = 'WORK_FROM_HOME',
 }
 
-export enum AttendanceType {
+export enum EAttendanceType {
   IN = 'IN',
   OUT = 'OUT',
 }

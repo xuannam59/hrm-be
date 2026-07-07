@@ -1,4 +1,4 @@
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -26,8 +26,8 @@ class CreateUserDto {
   @ApiProperty({ example: 'ADMIN' })
   @IsString()
   @IsNotEmpty()
-  @IsEnum(Role)
-  role: Role;
+  @IsEnum(ERole)
+  role: ERole;
 
   @ApiProperty({ example: 'System Admin' })
   @IsString()

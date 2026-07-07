@@ -1,10 +1,10 @@
-import SearchDtoBase from '@/common/bases/search-dto.base';
-import { AttendanceStatus } from '@/common/types/attendance.type';
+import BaseSearchDto from '@/common/bases/search-dto.base';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 
-export class SearchAttendanceQueryDto extends SearchDtoBase {
+export class SearchAttendanceQueryDto extends BaseSearchDto {
   @ApiPropertyOptional({ example: '2026-01-01', type: Date })
   @IsOptional()
   @Type(() => Date)
@@ -24,12 +24,12 @@ export class SearchAttendanceQueryDto extends SearchDtoBase {
   employeeId?: number;
 
   @ApiPropertyOptional({
-    example: AttendanceStatus.PRESENT,
-    enum: AttendanceStatus,
+    example: EAttendanceStatus.PRESENT,
+    enum: EAttendanceStatus,
   })
   @IsOptional()
-  @IsEnum(AttendanceStatus)
-  status?: AttendanceStatus;
+  @IsEnum(EAttendanceStatus)
+  status?: EAttendanceStatus;
 
   @ApiPropertyOptional({ example: 1, type: Number })
   @IsOptional()

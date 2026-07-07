@@ -11,17 +11,17 @@ export interface IEmployee {
   avatar: string;
   hireDate: Date;
   position: string;
-  status: EmployeeStatus;
+  status: EEmployeeStatus;
   departmentId: number;
 }
 
-export enum GenderType {
+export enum EGenderType {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
   OTHER = 'OTHER',
 }
 
-export enum EmployeeStatus {
+export enum EEmployeeStatus {
   WORKING = 'WORKING',
   RETIRED = 'RETIRED',
 }

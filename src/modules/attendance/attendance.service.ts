@@ -13,9 +13,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IUser } from '@/common/types/user.type';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { AttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
 import { START_WORK_TIME } from '@/common/constants/attendance.constant';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
 import { requireEmployee } from '@/common/utils/user-context.util';
 import {
   calculateWorkHours,
@@ -30,7 +30,7 @@ import {
   SearchMyAttendanceQueryDto,
 } from './dto/sreach-attendance-query.dto';
 import { IPaginationResponse } from '@/common/types/common.type';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
 @Injectable()
@@ -48,7 +48,7 @@ export class AttendanceService {
       const employeeInfo = requireEmployee(actor);
 
       const employee = await this.employeeRepository.findOne({
-        where: { id: employeeInfo.id, status: EmployeeStatus.WORKING },
+        where: { id: employeeInfo.id, status: EEmployeeStatus.WORKING },
       });
 
       if (!employee) {
@@ -210,7 +210,7 @@ export class AttendanceService {
         });
       }
 
-      if (actor.role === Role.MANAGER) {
+      if (actor.role === ERole.MANAGER) {
         queryBuilder.andWhere('employee.departmentId = :managerDepartmentId', {
           managerDepartmentId: actor.employee.departmentId,
         });
@@ -328,7 +328,7 @@ export class AttendanceService {
         throw new NotFoundException('Attendance not found');
       }
 
-      if (actor.role === Role.MANAGER) {
+      if (actor.role === ERole.MANAGER) {
         const manager = requireEmployee(actor);
         if (attendance.employee.departmentId !== manager.departmentId) {
           throw new ForbiddenException(
@@ -438,11 +438,13 @@ export class AttendanceService {
     };
   }
 
-  private resolveStatus(checkTime: Date): AttendanceStatus {
+  private resolveStatus(checkTime: Date): EAttendanceStatus {
     const [h, m] = START_WORK_TIME.split(':').map(Number);
     const start = new Date(checkTime);
     start.setHours(h, m, 0, 0);
 
-    return checkTime > start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
+    return checkTime > start
+      ? EAttendanceStatus.LATE
+      : EAttendanceStatus.PRESENT;
   }
 }

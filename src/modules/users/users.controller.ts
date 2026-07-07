@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 import { ResponseMessage } from '@/common/decorators/public.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Body } from '@nestjs/common';
@@ -25,7 +25,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('all')
-  @Roles(Role.ADMIN)
+  @Roles(ERole.ADMIN)
   @ResponseMessage('Get all users successful')
   async getAllUsers(
     @Query() query: SearchUserQueryDto,
@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(ERole.ADMIN)
   @ResponseMessage('Create user successful')
   async createUser(
     @Body() createUserDto: CreateUserDto,
@@ -44,7 +44,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN)
+  @Roles(ERole.ADMIN)
   @ResponseMessage('Get user by id successful')
   async getUserDetail(
     @Param('id', ParseIntPipe) id: number,
@@ -53,7 +53,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles(ERole.ADMIN)
   @ResponseMessage('Update user successful')
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
@@ -64,7 +64,7 @@ export class UsersController {
   }
 
   // @Delete('delete/:id')
-  // @Roles(Role.ADMIN)
+  // @Roles(ERole.ADMIN)
   // @ResponseMessage('Delete user successful')
   // async deleteUser(
   //   @Param('id', ParseIntPipe) id: number,

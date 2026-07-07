@@ -1,9 +1,9 @@
-import SearchDtoBase from '@/common/bases/search-dto.base';
+import BaseSearchDto from '@/common/bases/search-dto.base';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 
-class SearchHistoryQueryDto extends SearchDtoBase {
+class SearchHistoryQueryDto extends BaseSearchDto {
   @ApiPropertyOptional({ example: 'john' })
   @IsOptional()
   @IsString()

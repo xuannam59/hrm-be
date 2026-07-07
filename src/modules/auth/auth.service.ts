@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserStatus } from '@/common/types/user.type';
+import { EUserStatus } from '@/common/types/user.type';
 import { compareHashedString, hashString } from '@/common/utils/crypto.util';
 import type { IPayloadToken } from '@/common/types/auths.type';
 import { type IUser } from '@/common/types/user.type';
@@ -18,7 +18,7 @@ import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { Role } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/role.constant';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +37,7 @@ export class AuthService {
       const userInfo = await this.userRepository.findOne({
         where: {
           email,
-          status: UserStatus.ACTIVE,
+          status: EUserStatus.ACTIVE,
         },
         relations: { employee: true },
         select: {

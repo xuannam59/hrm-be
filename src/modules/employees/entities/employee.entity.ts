@@ -7,7 +7,7 @@ import {
   OneToOne,
   Unique,
 } from 'typeorm';
-import { EmployeeStatus, GenderType } from '@/common/types/employee.type';
+import { EEmployeeStatus, EGenderType } from '@/common/types/employee.type';
 import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
 import { UserEntity } from '@/modules/users/entities/user.entity';
 import { EntityBase } from '@/common/bases/entity.base';
@@ -26,8 +26,8 @@ export class EmployeeEntity extends EntityBase {
   @Column({ type: 'varchar' })
   lastName: string;
 
-  @Column({ type: 'enum', enum: GenderType })
-  gender: GenderType;
+  @Column({ type: 'enum', enum: EGenderType })
+  gender: EGenderType;
 
   @Column({ type: 'datetime', nullable: true })
   birthday: Date | null;
@@ -49,10 +49,10 @@ export class EmployeeEntity extends EntityBase {
 
   @Column({
     type: 'enum',
-    enum: EmployeeStatus,
-    default: EmployeeStatus.WORKING,
+    enum: EEmployeeStatus,
+    default: EEmployeeStatus.WORKING,
   })
-  status: EmployeeStatus;
+  status: EEmployeeStatus;
 
   @Column({ name: 'department_id' })
   departmentId: number;

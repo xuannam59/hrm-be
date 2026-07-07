@@ -10,9 +10,9 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { GenderType } from '@/common/types/employee.type';
+import { EGenderType } from '@/common/types/employee.type';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import { EmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
 
 class CreateEmployeeDto {
   @ApiProperty({ example: 'John' })
@@ -27,9 +27,9 @@ class CreateEmployeeDto {
   @MinLength(1)
   lastName: string;
 
-  @ApiProperty({ example: GenderType.MALE, enum: GenderType })
-  @IsEnum(GenderType)
-  gender: GenderType;
+  @ApiProperty({ example: EGenderType.MALE, enum: EGenderType })
+  @IsEnum(EGenderType)
+  gender: EGenderType;
 
   @ApiProperty({ example: '1990-01-01' })
   @Type(() => Date)
@@ -67,13 +67,13 @@ class CreateEmployeeDto {
   departmentId: number;
 
   @ApiProperty({
-    example: EmployeeStatus.WORKING,
-    enum: EmployeeStatus,
-    default: EmployeeStatus.WORKING,
+    example: EEmployeeStatus.WORKING,
+    enum: EEmployeeStatus,
+    default: EEmployeeStatus.WORKING,
   })
-  @IsEnum(EmployeeStatus)
+  @IsEnum(EEmployeeStatus)
   @IsNotEmpty()
-  status: EmployeeStatus;
+  status: EEmployeeStatus;
 
   @ApiProperty()
   @ValidateNested()

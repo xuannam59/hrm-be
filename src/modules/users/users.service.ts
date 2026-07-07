@@ -12,7 +12,7 @@ import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import {
-  Role,
+  ERole,
   ROLES_REQUIRING_EMPLOYEE,
 } from '@/common/constants/role.constant';
 import { buildDisplayName } from '@/common/utils/user-context.util';
@@ -305,10 +305,10 @@ export class UsersService {
   }
 
   private assertActorCanAssignRole(
-    actorRole: Role | undefined,
-    targetRole: Role,
+    actorRole: ERole | undefined,
+    targetRole: ERole,
   ) {
-    if (actorRole === Role.MANAGER && targetRole === Role.ADMIN) {
+    if (actorRole === ERole.MANAGER && targetRole === ERole.ADMIN) {
       throw new ForbiddenException(
         'Manager cannot create or assign admin accounts',
       );
