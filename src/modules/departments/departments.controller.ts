@@ -24,21 +24,21 @@ export class DepartmentsController {
   @Post()
   @Roles(ERole.ADMIN)
   @ResponseMessage('Create department successful')
-  async createDepartment(@Body() createDepartmentDto: CreateDepartmentDto) {
+  async create(@Body() createDepartmentDto: CreateDepartmentDto) {
     return this.departmentsService.createDepartment(createDepartmentDto);
   }
 
   @Get()
   @Roles(ERole.ADMIN)
   @ResponseMessage('Get all departments successful')
-  async getAllDepartments(@Query() query: SearchDepartmentQueryDto) {
+  async getAl(@Query() query: SearchDepartmentQueryDto) {
     return this.departmentsService.getAllDepartments(query);
   }
 
   @Patch(':id')
   @Roles(ERole.ADMIN)
   @ResponseMessage('Update department successful')
-  async updateDepartment(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
   ) {
@@ -48,7 +48,7 @@ export class DepartmentsController {
   @Delete(':id')
   @Roles(ERole.ADMIN)
   @ResponseMessage('Delete department successful')
-  async removeDepartment(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return this.departmentsService.removeDepartment(id);
   }
 }

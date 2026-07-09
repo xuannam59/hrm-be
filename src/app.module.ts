@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -10,6 +8,10 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { EmployeeHistoriesModule } from './modules/employee-histories/employee-histories.module';
 import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.module';
+import { EmployeeEducationsModule } from './modules/employee-educations/employee-educations.module';
+import { EmployeeInsuranceModule } from './modules/employee-insurance/employee-insurance.module';
+import { EmployeeBenefitModule } from './modules/employee-benefit/employee-benefit.module';
+import { PayrollsModule } from './modules/payrolls/payrolls.module';
 
 @Module({
   imports: [
@@ -24,8 +26,10 @@ import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.mod
     AttendanceModule,
     EmployeeHistoriesModule,
     LeaveRequestsModule,
+    EmployeeEducationsModule,
+    EmployeeInsuranceModule,
+    EmployeeBenefitModule,
+    PayrollsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

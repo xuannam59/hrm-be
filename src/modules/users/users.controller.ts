@@ -33,16 +33,6 @@ export class UsersController {
     return this.usersService.getAllUsers(query);
   }
 
-  @Post()
-  @Roles(ERole.ADMIN)
-  @ResponseMessage('Create user successful')
-  async createUser(
-    @Body() createUserDto: CreateUserDto,
-    @User() actor: IUser,
-  ): Promise<UserEntity> {
-    return this.usersService.createUser(createUserDto, actor);
-  }
-
   @Get(':id')
   @Roles(ERole.ADMIN)
   @ResponseMessage('Get user by id successful')
@@ -58,9 +48,8 @@ export class UsersController {
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
     @Param('id', ParseIntPipe) id: number,
-    @User() actor: IUser,
   ) {
-    return this.usersService.updateUser(id, updateUserDto, actor);
+    return this.usersService.updateUser(id, updateUserDto);
   }
 
   // @Delete('delete/:id')

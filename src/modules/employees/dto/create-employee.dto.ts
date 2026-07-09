@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   MinLength,
@@ -74,6 +75,11 @@ class CreateEmployeeDto {
   @IsEnum(EEmployeeStatus)
   @IsNotEmpty()
   status: EEmployeeStatus;
+
+  @ApiProperty({ example: 10000000.0 })
+  @IsNumber()
+  @IsNotEmpty()
+  basicSalary: number;
 
   @ApiProperty()
   @ValidateNested()

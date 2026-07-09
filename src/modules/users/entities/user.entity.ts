@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { EUserStatus } from '@/common/types/user.type';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
-import { EntityBase } from '@/common/bases/entity.base';
+import { BaseEntity } from '@/common/bases/entity.base';
 import { ERole } from '@/common/constants/role.constant';
 
 @Entity('User')
-export class UserEntity extends EntityBase {
+export class UserEntity extends BaseEntity {
   @Column({ name: 'display_name' })
   displayName: string;
 
@@ -18,8 +18,8 @@ export class UserEntity extends EntityBase {
   @Column({ name: 'role', type: 'enum', enum: ERole })
   role: ERole;
 
-  @Column({ name: 'employee_id', type: 'int', nullable: true, unique: true })
-  employeeId: number | null;
+  @Column({ name: 'employee_id', type: 'int', unique: true })
+  employeeId: number;
 
   @Column({
     type: 'enum',
@@ -31,9 +31,7 @@ export class UserEntity extends EntityBase {
   @Column({ name: 'last_login', type: 'datetime', nullable: true })
   lastLogin: Date | null;
 
-  @OneToOne(() => EmployeeEntity, (employee) => employee.user, {
-    nullable: true,
-  })
+  @OneToOne(() => EmployeeEntity, (employee) => employee.user)
   @JoinColumn({ name: 'employee_id' })
   employee: EmployeeEntity;
 }

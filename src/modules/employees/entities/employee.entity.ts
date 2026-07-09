@@ -5,21 +5,21 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
-  Unique,
 } from 'typeorm';
 import { EEmployeeStatus, EGenderType } from '@/common/types/employee.type';
 import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
 import { UserEntity } from '@/modules/users/entities/user.entity';
-import { EntityBase } from '@/common/bases/entity.base';
+import { BaseEntity } from '@/common/bases/entity.base';
 import { AttendanceEntity } from '@/modules/attendance/entities/attendance.entity';
 import { EmploymentHistoryEntity } from '../../employee-histories/entities/employment-history.entity';
 import { LeaveRequestEntity } from '@/modules/leave-requests/entities/leave-request.entity';
+import { EmployeeEducationEntity } from '@/modules/employee-educations/entities/employee-education.entity';
+import { EmployeeBenefitEntity } from '@/modules/employee-benefit/entities/employee-benefit.entity';
+import { EmployeeInsuranceEntity } from '@/modules/employee-insurance/entities/employee-insurance.entity';
+import { PayrollEntity } from '@/modules/payrolls/entities/payroll.entity';
 
 @Entity('Employee')
-export class EmployeeEntity extends EntityBase {
-  @Column({ unique: true })
-  employeeCode: string;
-
+export class EmployeeEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   firstName: string;
 
@@ -78,4 +78,16 @@ export class EmployeeEntity extends EntityBase {
 
   @OneToMany(() => LeaveRequestEntity, (leaveRequest) => leaveRequest.employee)
   leaveRequests: LeaveRequestEntity[];
+
+  @OneToMany(() => EmployeeEducationEntity, (education) => education.employee)
+  educations: EmployeeEducationEntity[];
+
+  @OneToMany(() => EmployeeInsuranceEntity, (insurance) => insurance.employee)
+  insurances: EmployeeInsuranceEntity[];
+
+  @OneToMany(() => EmployeeBenefitEntity, (benefit) => benefit.employee)
+  benefits: EmployeeBenefitEntity[];
+
+  @OneToMany(() => PayrollEntity, (payroll) => payroll.employee)
+  payrolls: PayrollEntity[];
 }

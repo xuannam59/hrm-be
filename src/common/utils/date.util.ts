@@ -102,3 +102,45 @@ export const getNumberOfLeaveDays = (
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
 };
+
+export const getWeekendAndTotalDays = (year: number, month: number) => {
+  const monthStartDate = new Date(year, month - 1, 1);
+  const monthEndDate = new Date(year, month, 0);
+  const weekendDays: Date[] = [];
+  const totalDays = monthEndDate.getDate() - monthStartDate.getDate() + 1;
+  for (
+    let cursorDate = monthStartDate;
+    cursorDate <= monthEndDate;
+    cursorDate.setDate(cursorDate.getDate() + 1)
+  ) {
+    const dayOfWeek = cursorDate.getDay();
+
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      const nextDayDate = new Date(cursorDate);
+      nextDayDate.setHours(0, 0, 0, 0);
+      nextDayDate.setDate(nextDayDate.getDate() + 1);
+      weekendDays.push(nextDayDate);
+    }
+  }
+  return { weekendDays, totalDays };
+};
+
+export const isDateActive = (from: Date, to?: Date, at: Date = new Date()) => {
+  const fromDate = new Date(from);
+  fromDate.setHours(0, 0, 0, 0);
+
+  const checkDate = new Date(at);
+  checkDate.setHours(0, 0, 0, 0);
+
+  if (fromDate > checkDate) {
+    return false;
+  }
+  if (!to) {
+    return true;
+  }
+
+  const toDate = new Date(to);
+  toDate.setHours(23, 59, 59, 999);
+
+  return to >= checkDate;
+};

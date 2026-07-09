@@ -3,6 +3,7 @@ import {
   IsDate,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   MinLength,
@@ -33,6 +34,11 @@ class UpdateEmployeeDto {
   @IsInt()
   @IsOptional()
   departmentId?: number;
+
+  @ApiProperty({ example: 10000000.0 })
+  @IsNumber()
+  @IsOptional()
+  basicSalary?: number;
 }
 
 export default UpdateEmployeeDto;

@@ -1,3 +1,17 @@
+import { START_WORK_TIME } from '@/common/constants/attendance.constant';
+import { ERole } from '@/common/constants/role.constant';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
+import { IUser } from '@/common/types/user.type';
+import {
+  calculateWorkHours,
+  formatLocalTime,
+  getTodayDate,
+  getTodayWorkDate,
+  timeToMinutes,
+  validateDay,
+} from '@/common/utils/date.util';
 import {
   BadRequestException,
   ConflictException,
@@ -8,30 +22,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendanceEntity } from './entities/attendance.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IUser } from '@/common/types/user.type';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
-import { START_WORK_TIME } from '@/common/constants/attendance.constant';
-import { EEmployeeStatus } from '@/common/types/employee.type';
-import { requireEmployee } from '@/common/utils/user-context.util';
-import {
-  calculateWorkHours,
-  formatLocalTime,
-  getTodayDate,
-  getTodayWorkDate,
-  timeToMinutes,
-  validateDay,
-} from '@/common/utils/date.util';
 import {
   SearchAttendanceQueryDto,
   SearchMyAttendanceQueryDto,
 } from './dto/sreach-attendance-query.dto';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { ERole } from '@/common/constants/role.constant';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+import { AttendanceEntity } from './entities/attendance.entity';
 
 @Injectable()
 export class AttendanceService {
@@ -45,10 +44,8 @@ export class AttendanceService {
 
   async checkIn(actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
-
       const employee = await this.employeeRepository.findOne({
-        where: { id: employeeInfo.id, status: EEmployeeStatus.WORKING },
+        where: { id: actor.employee.id, status: EEmployeeStatus.WORKING },
       });
 
       if (!employee) {
@@ -88,7 +85,7 @@ export class AttendanceService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -97,13 +94,12 @@ export class AttendanceService {
 
   async checkOut(actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const workDate = getTodayWorkDate();
       const now = new Date();
 
       const attendance = await this.attendanceRepository.findOne({
         where: {
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
           workDate,
         },
       });
@@ -127,7 +123,7 @@ export class AttendanceService {
       const saved = await this.attendanceRepository.save(attendance);
 
       this.logger.log(
-        `Check out successful for employee ${employeeInfo.id} on ${getTodayDate()}`,
+        `Check out successful for employee ${actor.employee.id} on ${getTodayDate()}`,
       );
       return saved;
     } catch (error) {
@@ -135,7 +131,7 @@ export class AttendanceService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -150,7 +146,7 @@ export class AttendanceService {
       const {
         page,
         limit,
-        sortBy,
+        sortField,
         sortOrder,
         from,
         to,
@@ -159,19 +155,15 @@ export class AttendanceService {
         status,
       } = query;
 
-      const pageNumber = page ?? 1;
-      const limitNumber = limit ?? 10;
-      const sortByColumn = sortBy ?? 'workDate';
-      const orderBy = sortOrder ?? 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
+      const skip = (page - 1) * limit;
 
       const queryBuilder = this.attendanceRepository
         .createQueryBuilder('attendance')
         .leftJoinAndSelect('attendance.employee', 'employee')
         .leftJoinAndSelect('employee.department', 'department')
         .skip(skip)
-        .take(limitNumber)
-        .orderBy(`attendance.${sortByColumn}`, orderBy)
+        .take(limit)
+        .orderBy(`attendance.${sortField}`, sortOrder)
         .select([
           'attendance.id',
           'attendance.employeeId',
@@ -230,9 +222,9 @@ export class AttendanceService {
         result,
         pagination: {
           total,
-          page: pageNumber,
-          limit: limitNumber,
-          totalPages: Math.ceil(total / limitNumber),
+          page: page,
+          limit: limit,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -240,7 +232,7 @@ export class AttendanceService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -252,7 +244,6 @@ export class AttendanceService {
     actor: IUser,
   ): Promise<AttendanceEntity[]> {
     try {
-      const employee = requireEmployee(actor);
       const { year, month, day } = query;
 
       const dateRange = this.resolveMyAttendanceDateRange(year, month, day);
@@ -260,7 +251,7 @@ export class AttendanceService {
       const queryBuilder = this.attendanceRepository
         .createQueryBuilder('attendance')
         .where('attendance.employeeId = :employeeId', {
-          employeeId: employee.id,
+          employeeId: actor.employee.id,
         })
         .orderBy('attendance.workDate', 'DESC')
         .select([
@@ -293,7 +284,7 @@ export class AttendanceService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -329,8 +320,7 @@ export class AttendanceService {
       }
 
       if (actor.role === ERole.MANAGER) {
-        const manager = requireEmployee(actor);
-        if (attendance.employee.departmentId !== manager.departmentId) {
+        if (attendance.employee.departmentId !== actor.employee.departmentId) {
           throw new ForbiddenException(
             'You can only update attendance for employees in your department',
           );
@@ -391,7 +381,7 @@ export class AttendanceService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

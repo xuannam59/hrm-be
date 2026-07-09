@@ -1,4 +1,4 @@
-import { EntityBase } from '@/common/bases/entity.base';
+import { BaseEntity } from '@/common/bases/entity.base';
 import {
   ELeaveRequestStatus,
   ELeaveType,
@@ -10,7 +10,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 @Index(['employeeId'])
 @Index(['status'])
 @Index(['approverId'])
-export class LeaveRequestEntity extends EntityBase {
+export class LeaveRequestEntity extends BaseEntity {
   @Column({ name: 'employee_id' })
   employeeId: number;
 

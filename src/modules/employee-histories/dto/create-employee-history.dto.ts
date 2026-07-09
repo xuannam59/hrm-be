@@ -4,6 +4,7 @@ import {
   IsDate,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -38,4 +39,9 @@ export class CreateEmployeeHistoryDto {
   @IsOptional()
   @Type(() => Date)
   endDate?: Date;
+
+  @ApiProperty({ example: 10000000.0 })
+  @IsNumber()
+  @IsNotEmpty()
+  basicSalary: number;
 }

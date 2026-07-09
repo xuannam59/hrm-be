@@ -1,3 +1,10 @@
+import { ERole } from '@/common/constants/role.constant';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
+import { EUserStatus, IUser } from '@/common/types/user.type';
+import { hashString } from '@/common/utils/crypto.util';
+import { buildDisplayName } from '@/common/utils/user-context.util';
+import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
 import {
   BadRequestException,
   HttpException,
@@ -6,28 +13,24 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { IUser } from '@/common/types/user.type';
-import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
-import CreateEmployeeDto from './dto/create-employee.dto';
-import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import {
-  buildDisplayName,
-  requireEmployee,
-} from '@/common/utils/user-context.util';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Repository } from 'typeorm';
-import { EmployeeEntity } from './entities/employee.entity';
+import { Brackets, DataSource, IsNull, Repository } from 'typeorm';
 import { DepartmentEntity } from '../departments/entities/department.entity';
-import { ERole } from '@/common/constants/role.constant';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { UserEntity } from '../users/entities/user.entity';
-import { EUserStatus } from '@/common/types/user.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
-import { hashString } from '@/common/utils/crypto.util';
-import UpdateEmployeeDto from './dto/update-employee.dto';
-import { generateNextEmployeeCode } from '@/common/utils/employee-code.util';
-import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
+import { UserEntity } from '../users/entities/user.entity';
+import CreateEmployeeDto from './dto/create-employee.dto';
+import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
+import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
+import UpdateEmployeeDto from './dto/update-employee.dto';
+import { EmployeeEntity } from './entities/employee.entity';
+import {
+  ALLOWED_SORT_FIELDS_EMPLOYEE,
+  EMPLOYEE_SELECT,
+} from '@/common/constants/employee.constant';
+import { EmployeeInsuranceEntity } from '../employee-insurance/entities/employee-insurance.entity';
+import { EInsuranceType } from '@/common/types/insurance.type';
+import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
+import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
 
 @Injectable()
 export class EmployeesService {
@@ -38,8 +41,6 @@ export class EmployeesService {
     private readonly departmentRepository: Repository<DepartmentEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(EmploymentHistoryEntity)
-    private readonly employmentHistoryRepository: Repository<EmploymentHistoryEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -53,50 +54,32 @@ export class EmployeesService {
       const {
         page,
         limit,
-        sortBy,
+        sortField,
         sortOrder,
         search,
         departmentId,
         status,
         position,
       } = query;
-      const pageNumber = page ?? 1;
-      const limitNumber = limit ?? 10;
-      const sortByField = sortBy ?? 'createdAt';
-      const sortOrderDirection = sortOrder ?? 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
+      const skip = (page - 1) * limit;
+
+      const safeSortField = ALLOWED_SORT_FIELDS_EMPLOYEE.includes(sortField)
+        ? sortField
+        : 'createdAt';
 
       const queryBuilder = this.employeeRepository
         .createQueryBuilder('employee')
         .leftJoinAndSelect('employee.user', 'user')
         .leftJoinAndSelect('employee.department', 'department')
+        .leftJoinAndSelect('employee.educations', 'educations')
         .leftJoinAndSelect(
           'employee.employmentHistories',
           'employmentHistories',
         )
-        .select([
-          'employee.id',
-          'employee.employeeCode',
-          'employee.firstName',
-          'employee.lastName',
-          'employee.avatar',
-          'employee.position',
-          'employee.status',
-          'employee.createdAt',
-          'employee.updatedAt',
-          'user.id',
-          'user.email',
-          'user.displayName',
-          'user.status',
-          'user.lastLogin',
-          'user.role',
-          'department.id',
-          'department.name',
-          'employmentHistories.id',
-          'employmentHistories.position',
-          'employmentHistories.startDate',
-          'employmentHistories.endDate',
-        ]);
+        .orderBy(`employee.${safeSortField}`, sortOrder)
+        .skip(skip)
+        .take(limit)
+        .select(EMPLOYEE_SELECT);
 
       if (search) {
         queryBuilder.andWhere(
@@ -115,9 +98,8 @@ export class EmployeesService {
       }
 
       if (actor.role === ERole.MANAGER) {
-        const employee = requireEmployee(actor);
         queryBuilder.andWhere('employee.departmentId = :departmentId', {
-          departmentId: employee.departmentId,
+          departmentId: actor.employee.departmentId,
         });
       } else if (departmentId) {
         queryBuilder.andWhere('employee.departmentId = :departmentId', {
@@ -132,19 +114,15 @@ export class EmployeesService {
         queryBuilder.andWhere('employee.position = :position', { position });
       }
 
-      const [employees, total] = await queryBuilder
-        .orderBy(`employee.${sortByField}`, sortOrderDirection)
-        .skip(skip)
-        .take(limitNumber)
-        .getManyAndCount();
+      const [employees, total] = await queryBuilder.getManyAndCount();
 
       return {
         result: employees,
         pagination: {
-          page: pageNumber,
-          limit: limitNumber,
-          total: total,
-          totalPages: Math.ceil(total / limitNumber),
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -152,7 +130,7 @@ export class EmployeesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -161,41 +139,19 @@ export class EmployeesService {
 
   async getMyEmployeeProfile(actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
+      const queryBuilder = this.employeeRepository
+        .createQueryBuilder('employee')
+        .where('employee.id = :id', { id: actor.employee.id })
+        .leftJoinAndSelect('employee.user', 'user')
+        .leftJoinAndSelect('employee.department', 'department')
+        .leftJoinAndSelect('employee.educations', 'educations')
+        .leftJoinAndSelect(
+          'employee.employmentHistories',
+          'employmentHistories',
+        )
+        .select(EMPLOYEE_SELECT);
 
-      const employee = await this.employeeRepository.findOne({
-        where: { id: employeeInfo.id },
-        relations: { user: true, department: true, employmentHistories: true },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          address: true,
-          phone: true,
-          birthday: true,
-          gender: true,
-          avatar: true,
-          position: true,
-          status: true,
-          department: {
-            id: true,
-            name: true,
-          },
-          employmentHistories: {
-            id: true,
-            position: true,
-            startDate: true,
-            endDate: true,
-          },
-          user: {
-            id: true,
-            email: true,
-            displayName: true,
-            status: true,
-            role: true,
-          },
-        },
-      });
+      const employee = await queryBuilder.getOne();
 
       if (!employee) {
         throw new NotFoundException('Employee not found');
@@ -206,6 +162,11 @@ export class EmployeesService {
       if (error instanceof HttpException) {
         throw error;
       }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
     }
   }
 
@@ -232,11 +193,7 @@ export class EmployeesService {
 
       return await this.dataSource.transaction(
         async (transactionalEntityManager) => {
-          const employeeCode = await generateNextEmployeeCode(
-            transactionalEntityManager,
-          );
           const employee = transactionalEntityManager.create(EmployeeEntity, {
-            employeeCode: employeeCode,
             firstName: createEmployeeDto.firstName.trim(),
             lastName: createEmployeeDto.lastName.trim(),
             gender: createEmployeeDto.gender,
@@ -248,7 +205,18 @@ export class EmployeesService {
             departmentId: createEmployeeDto.departmentId,
             status: createEmployeeDto.status,
           });
-          await transactionalEntityManager.save(employee);
+
+          const insurance = transactionalEntityManager.create(
+            EmployeeBenefitEntity,
+            {
+              employeeId: employee.id,
+              benefitType: EBenefitType.ALLOWANCE,
+              benefitName: 'Trợ cấp',
+              valueType: EBenefitValueType.AMOUNT,
+              value: 800000,
+              effectiveFrom: createEmployeeDto.hireDate,
+            },
+          );
 
           const employmentHistory = transactionalEntityManager.create(
             EmploymentHistoryEntity,
@@ -257,16 +225,21 @@ export class EmployeesService {
               departmentId: createEmployeeDto.departmentId,
               position: createEmployeeDto.position,
               startDate: createEmployeeDto.hireDate,
+              basicSalary: createEmployeeDto.basicSalary,
             },
           );
-          await transactionalEntityManager.save(employmentHistory);
+
+          await Promise.all([
+            transactionalEntityManager.save(insurance),
+            transactionalEntityManager.save(employmentHistory),
+            transactionalEntityManager.save(employee),
+          ]);
 
           if (createEmployeeDto.account) {
-            let userStatus = EUserStatus.INACTIVE;
-
-            if (createEmployeeDto.status === EEmployeeStatus.WORKING) {
-              userStatus = EUserStatus.ACTIVE;
-            }
+            const userStatus =
+              createEmployeeDto.status === EEmployeeStatus.WORKING
+                ? EUserStatus.ACTIVE
+                : EUserStatus.INACTIVE;
 
             const displayName = buildDisplayName(
               employee.firstName,
@@ -285,10 +258,12 @@ export class EmployeesService {
               status: userStatus,
               employeeId: employee.id,
             });
+
             await transactionalEntityManager.save(user);
+
             employee.user = {
               ...user,
-              password: createEmployeeDto.account.password,
+              password: undefined as never,
             };
           }
           this.logger.log(
@@ -302,7 +277,7 @@ export class EmployeesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -382,7 +357,7 @@ export class EmployeesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -402,6 +377,8 @@ export class EmployeesService {
           user: {
             id: true,
           },
+          position: true,
+          departmentId: true,
         },
       });
 
@@ -439,9 +416,50 @@ export class EmployeesService {
             );
           }
 
-          this.logger.log(
-            `Employee ${employeeInfo.firstName} ${employeeInfo.lastName} updated successfully`,
-          );
+          const isPositionChanged =
+            updateEmployeeDto.position !== undefined &&
+            updateEmployeeDto.position !== employeeInfo.position;
+
+          const isDepartmentChanged =
+            updateEmployeeDto.departmentId !== undefined &&
+            updateEmployeeDto.departmentId !== employeeInfo.departmentId;
+
+          if (isPositionChanged || isDepartmentChanged) {
+            const employmentHistory = await transactionalEntityManager.findOne(
+              EmploymentHistoryEntity,
+              {
+                where: { employeeId: employeeId, endDate: IsNull() },
+              },
+            );
+
+            const data = {
+              employeeId,
+              departmentId:
+                updateEmployeeDto.departmentId ?? employeeInfo.departmentId,
+              position: updateEmployeeDto.position ?? employeeInfo.position,
+              basicSalary: updateEmployeeDto.basicSalary ?? 0.0,
+              startDate: new Date(),
+            };
+
+            if (employmentHistory) {
+              employmentHistory.endDate = new Date();
+              await transactionalEntityManager.save(employmentHistory);
+
+              const basicSalary =
+                updateEmployeeDto.basicSalary ?? employmentHistory.basicSalary;
+
+              data.basicSalary = basicSalary;
+            }
+
+            const newEmploymentHistory = transactionalEntityManager.create(
+              EmploymentHistoryEntity,
+              data,
+            );
+
+            await transactionalEntityManager.save(newEmploymentHistory);
+          }
+
+          this.logger.log(`Employee ${employeeInfo.id} updated successfully`);
           return 'Update employee successful';
         },
       );
@@ -450,7 +468,7 @@ export class EmployeesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -462,12 +480,6 @@ export class EmployeesService {
     actor: IUser,
   ) {
     try {
-      const employeeInfo = requireEmployee(actor);
-
-      if (!employeeInfo) {
-        throw new NotFoundException('Employee not found');
-      }
-
       const dataUpdate: Partial<EmployeeEntity> = {
         firstName: updateProfileDto.firstName,
         lastName: updateProfileDto.lastName,
@@ -485,7 +497,7 @@ export class EmployeesService {
         async (transactionalEntityManager) => {
           await transactionalEntityManager.update(
             EmployeeEntity,
-            employeeInfo.id,
+            actor.employee.id,
             dataUpdate,
           );
 
@@ -508,7 +520,7 @@ export class EmployeesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

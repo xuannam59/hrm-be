@@ -44,6 +44,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         `${request.method} ${request.url} [${status}]: ${String(message)}`,
         exception.stack,
       );
+      message = 'Internal server error';
     }
 
     response.status(status).json({

@@ -7,3 +7,8 @@ export interface IPaginationResponse<T> {
     totalPages: number;
   };
 }
+
+export enum ESortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}

@@ -1,4 +1,4 @@
-import { EntityBase } from '@/common/bases/entity.base';
+import { BaseEntity } from '@/common/bases/entity.base';
 import { EAttendanceStatus } from '@/common/types/attendance.type';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
@@ -6,7 +6,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 @Entity('Attendance')
 @Index(['employeeId', 'workDate'])
 @Unique(['employeeId', 'workDate'])
-export class AttendanceEntity extends EntityBase {
+export class AttendanceEntity extends BaseEntity {
   @Column({ name: 'employee_id' })
   employeeId: number;
 

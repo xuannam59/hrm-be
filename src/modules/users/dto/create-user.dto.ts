@@ -37,8 +37,8 @@ class CreateUserDto {
 
   @ApiProperty({ example: 1 })
   @IsInt()
-  @IsOptional()
-  employeeId?: number;
+  @IsNotEmpty()
+  employeeId: number;
 }
 
 export default CreateUserDto;

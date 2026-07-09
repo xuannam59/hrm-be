@@ -1,3 +1,6 @@
+import { ERole } from '@/common/constants/role.constant';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { IUser } from '@/common/types/user.type';
 import {
   HttpException,
   HttpStatus,
@@ -5,15 +8,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
-import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EmploymentHistoryEntity } from './entities/employment-history.entity';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { DepartmentEntity } from '../departments/entities/department.entity';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
 import SearchHistoryQueryDto from './dto/search-history-query.dto';
-import { IPaginationResponse } from '@/common/types/common.type';
+import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
+import { EmploymentHistoryEntity } from './entities/employment-history.entity';
 
 @Injectable()
 export class EmployeeHistoriesService {
@@ -51,6 +53,7 @@ export class EmployeeHistoriesService {
         departmentId: department.id,
         position: createEmployeeHistoryDto.position,
         startDate: createEmployeeHistoryDto.startDate,
+        basicSalary: createEmployeeHistoryDto.basicSalary,
       });
       const savedEmploymentHistory =
         await this.employmentHistoryRepository.save(employmentHistory);
@@ -72,12 +75,13 @@ export class EmployeeHistoriesService {
 
   async findAll(
     query: SearchHistoryQueryDto,
+    actor: IUser,
   ): Promise<IPaginationResponse<EmploymentHistoryEntity>> {
     try {
       const {
         page,
         limit,
-        sortBy,
+        sortField,
         sortOrder,
         search,
         employeeId,
@@ -85,21 +89,18 @@ export class EmployeeHistoriesService {
         startDateTo,
         endDateFrom,
         endDateTo,
+        departmentId,
       } = query;
-      const pageNumber = page ? page : 1;
-      const limitNumber = limit ? limit : 10;
-      const sortByColumn = sortBy ? sortBy : 'createdAt';
-      const orderBy = sortOrder ? sortOrder : 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
-      const take = limitNumber;
+
+      const skip = (page - 1) * limit;
 
       const queryBuilder = this.employmentHistoryRepository
         .createQueryBuilder('employmentHistory')
         .leftJoinAndSelect('employmentHistory.employee', 'employee')
         .leftJoinAndSelect('employmentHistory.department', 'department')
         .skip(skip)
-        .take(take)
-        .orderBy(`employmentHistory.${sortByColumn}`, orderBy)
+        .take(limit)
+        .orderBy(`employmentHistory.${sortField}`, sortOrder)
         .select([
           'employmentHistory.id',
           'employmentHistory.employeeId',
@@ -123,6 +124,22 @@ export class EmployeeHistoriesService {
           'employee.firstName LIKE :search OR employee.lastName LIKE :search',
           {
             search: `%${search}%`,
+          },
+        );
+      }
+
+      if (actor.role !== ERole.ADMIN) {
+        queryBuilder.andWhere(
+          'employmentHistory.departmentId = :departmentId',
+          {
+            departmentId: actor.employee.departmentId,
+          },
+        );
+      } else if (departmentId) {
+        queryBuilder.andWhere(
+          'employmentHistory.departmentId = :departmentId',
+          {
+            departmentId,
           },
         );
       }
@@ -161,10 +178,10 @@ export class EmployeeHistoriesService {
       return {
         result: employmentHistories,
         pagination: {
-          total: total,
-          page: pageNumber,
-          limit: limitNumber,
-          totalPages: Math.ceil(total / limitNumber),
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -172,49 +189,75 @@ export class EmployeeHistoriesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
     }
   }
 
-  async findOne(employmentHistoryId: number) {
+  async findOne(employmentHistoryId: number, actor: IUser) {
     try {
-      const employmentHistory = await this.employmentHistoryRepository.findOne({
-        where: { id: employmentHistoryId },
-        relations: {
-          employee: true,
-          department: true,
-        },
-        select: {
-          id: true,
-          employee: {
-            id: true,
-            employeeCode: true,
-            firstName: true,
-            lastName: true,
-            position: true,
+      const queryBuilder = this.employmentHistoryRepository
+        .createQueryBuilder('employmentHistory')
+        .leftJoinAndSelect('employmentHistory.employee', 'employee')
+        .leftJoinAndSelect('employmentHistory.department', 'department')
+        .where('employmentHistory.id = :id', { id: employmentHistoryId })
+        .select([
+          'employmentHistory.id',
+          'employmentHistory.employeeId',
+          'employmentHistory.departmentId',
+          'employmentHistory.position',
+          'employmentHistory.startDate',
+          'employmentHistory.endDate',
+          'employee.id',
+          'employee.employeeCode',
+          'employee.firstName',
+          'employee.lastName',
+          'employee.position',
+          'department.id',
+          'department.name',
+        ]);
+
+      if (actor.role !== ERole.ADMIN) {
+        queryBuilder.andWhere(
+          'employmentHistory.departmentId = :departmentId',
+          {
+            departmentId: actor.employee.departmentId,
           },
-          department: {
-            id: true,
-            name: true,
-          },
-          position: true,
-          startDate: true,
-          endDate: true,
-        },
-      });
+        );
+      }
+      const employmentHistory = await queryBuilder.getOne();
+
       if (!employmentHistory) {
         throw new NotFoundException('Employment history not found');
       }
+
       return employmentHistory;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async getMyHistories(actor: IUser) {
+    try {
+      const employmentHistories = await this.employmentHistoryRepository.find({
+        where: { employeeId: actor.employee.id },
+      });
+      return employmentHistories;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -260,7 +303,7 @@ export class EmployeeHistoriesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -286,7 +329,7 @@ export class EmployeeHistoriesService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

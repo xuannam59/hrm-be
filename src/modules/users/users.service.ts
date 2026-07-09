@@ -1,26 +1,17 @@
+import { buildDisplayName } from '@/common/utils/user-context.util';
 import {
-  BadRequestException,
-  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { hashString } from '@/common/utils/crypto.util';
-import CreateUserDto from './dto/create-user.dto';
-import UpdateUserDto from './dto/update-user.dto';
-import { SearchUserQueryDto } from './dto/search-user-query.dto';
-import {
-  ERole,
-  ROLES_REQUIRING_EMPLOYEE,
-} from '@/common/constants/role.constant';
-import { buildDisplayName } from '@/common/utils/user-context.util';
-import type { IUser } from '@/common/types/user.type';
-import { Brackets, Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Brackets, Repository } from 'typeorm';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { SearchUserQueryDto } from './dto/search-user-query.dto';
+import UpdateUserDto from './dto/update-user.dto';
+import { UserEntity } from './entities/user.entity';
 @Injectable()
 export class UsersService {
   constructor(
@@ -34,16 +25,16 @@ export class UsersService {
 
   async getAllUsers(query: SearchUserQueryDto) {
     try {
-      const { page, limit, sortBy, sortOrder, role, status, search } = query;
-      const pageNumber = page ?? 1;
-      const limitNumber = limit ?? 10;
-      const sortByField = sortBy ?? 'createdAt';
-      const sortOrderDirection = sortOrder ?? 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
+      const { page, limit, sortField, sortOrder, role, status, search } = query;
+
+      const skip = (page - 1) * limit;
 
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.employee', 'employee')
+        .orderBy(`user.${sortField}`, sortOrder)
+        .skip(skip)
+        .take(limit)
         .select([
           'user.id',
           'user.email',
@@ -53,7 +44,6 @@ export class UsersService {
           'user.createdAt',
           'user.role',
           'employee.id',
-          'employee.employeeCode',
           'employee.firstName',
           'employee.lastName',
           'employee.avatar',
@@ -76,19 +66,15 @@ export class UsersService {
       if (status) {
         queryBuilder.andWhere('user.status = :status', { status });
       }
-      const [users, total] = await queryBuilder
-        .orderBy(`user.${sortByField}`, sortOrderDirection)
-        .skip(skip)
-        .take(limitNumber)
-        .getManyAndCount();
+      const [users, total] = await queryBuilder.getManyAndCount();
 
       return {
         result: users,
         pagination: {
-          page: pageNumber,
-          limit: limitNumber,
-          total: total,
-          totalPages: Math.ceil(total / limitNumber),
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -96,87 +82,86 @@ export class UsersService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
-        { cause: error },
+        {
+          cause: error,
+        },
       );
     }
   }
 
-  async createUser(
-    createUserDto: CreateUserDto,
-    actor: IUser,
-  ): Promise<UserEntity> {
-    try {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: createUserDto.email.trim().toLowerCase() },
-      });
+  // async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+  //   try {
+  //     const existingUser = await this.userRepository.findOne({
+  //       where: { email: createUserDto.email.trim().toLowerCase() },
+  //     });
 
-      if (existingUser) {
-        throw new BadRequestException('Email already exists');
-      }
+  //     if (existingUser) {
+  //       throw new BadRequestException('Email already exists');
+  //     }
 
-      if (createUserDto.employeeId) {
-        const queryBuilder = this.employeeRepository
-          .createQueryBuilder('employee')
-          .where('employee.id = :id', { id: createUserDto.employeeId })
-          .leftJoinAndSelect('employee.user', 'user')
-          .select([
-            'employee.id',
-            'employee.firstName',
-            'employee.lastName',
-            'user.id',
-          ]);
-        const employee = await queryBuilder.getOne();
+  //     const queryBuilder = this.employeeRepository
+  //       .createQueryBuilder('employee')
+  //       .where('employee.id = :id', { id: createUserDto.employeeId })
+  //       .leftJoinAndSelect('employee.user', 'user')
+  //       .select([
+  //         'employee.id',
+  //         'employee.firstName',
+  //         'employee.lastName',
+  //         'user.id',
+  //       ]);
 
-        if (!employee) {
-          throw new BadRequestException('EmployeeId is not valid');
-        }
+  //     const employee = await queryBuilder.getOne();
 
-        if (employee.user) {
-          throw new BadRequestException('Employee already has a user account');
-        }
-        createUserDto.displayName = buildDisplayName(
-          employee.firstName,
-          employee.lastName,
-        );
-      }
+  //     if (!employee) {
+  //       throw new BadRequestException('EmployeeId is not valid');
+  //     }
 
-      if (
-        ROLES_REQUIRING_EMPLOYEE.includes(createUserDto.role) &&
-        !createUserDto.employeeId
-      ) {
-        throw new BadRequestException('Employee is required for this role');
-      }
+  //     if (employee.user) {
+  //       throw new BadRequestException('Employee already has a user account');
+  //     }
 
-      if (!createUserDto.displayName) {
-        throw new BadRequestException(
-          'displayName is required when not linking to an employee',
-        );
-      }
+  //     createUserDto.displayName = buildDisplayName(
+  //       employee.firstName,
+  //       employee.lastName,
+  //     );
 
-      const user = this.userRepository.create({
-        email: createUserDto.email.trim().toLowerCase(),
-        password: await hashString(createUserDto.password),
-        displayName: createUserDto.displayName?.trim(),
-        role: createUserDto.role,
-        employeeId: createUserDto.employeeId,
-      });
+  //     if (
+  //       ROLES_REQUIRING_EMPLOYEE.includes(createUserDto.role) &&
+  //       !createUserDto.employeeId
+  //     ) {
+  //       throw new BadRequestException('Employee is required for this role');
+  //     }
 
-      const newUser = await this.userRepository.save(user);
-      this.logger.log(`User ${newUser.email} created successfully`);
-      return newUser;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        { cause: error },
-      );
-    }
-  }
+  //     if (!createUserDto.displayName) {
+  //       throw new BadRequestException(
+  //         'displayName is required when not linking to an employee',
+  //       );
+  //     }
+
+  //     const user = this.userRepository.create({
+  //       email: createUserDto.email.trim().toLowerCase(),
+  //       password: await hashString(createUserDto.password),
+  //       displayName: createUserDto.displayName?.trim(),
+  //       role: createUserDto.role,
+  //       employeeId: createUserDto.employeeId,
+  //     });
+
+  //     const newUser = await this.userRepository.save(user);
+  //     this.logger.log(`User ${newUser.email} created successfully`);
+  //     return newUser;
+  //   } catch (error) {
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     }
+  //     throw new HttpException(
+  //       'Internal server error',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //       { cause: error },
+  //     );
+  //   }
+  // }
 
   async getUserDetail(id: number): Promise<UserEntity> {
     try {
@@ -209,18 +194,14 @@ export class UsersService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
     }
   }
 
-  async updateUser(
-    id: number,
-    updateUserDto: UpdateUserDto,
-    actor: IUser,
-  ): Promise<string> {
+  async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<string> {
     try {
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
@@ -269,7 +250,7 @@ export class UsersService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -288,7 +269,11 @@ export class UsersService {
           email: true,
           displayName: true,
           role: true,
-          employee: true,
+          status: true,
+          employee: {
+            id: true,
+            departmentId: true,
+          },
         },
       });
       return user;
@@ -297,20 +282,9 @@ export class UsersService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
-      );
-    }
-  }
-
-  private assertActorCanAssignRole(
-    actorRole: ERole | undefined,
-    targetRole: ERole,
-  ) {
-    if (actorRole === ERole.MANAGER && targetRole === ERole.ADMIN) {
-      throw new ForbiddenException(
-        'Manager cannot create or assign admin accounts',
       );
     }
   }

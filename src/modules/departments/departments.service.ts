@@ -1,3 +1,4 @@
+import { ERole } from '@/common/constants/role.constant';
 import {
   BadRequestException,
   HttpException,
@@ -6,14 +7,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateDepartmentDto } from './dto/create-department.dto';
-import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
-import { DepartmentEntity } from './entities/department.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { ERole } from '@/common/constants/role.constant';
+import { CreateDepartmentDto } from './dto/create-department.dto';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
+import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { DepartmentEntity } from './entities/department.entity';
 
 @Injectable()
 export class DepartmentsService {
@@ -81,7 +81,7 @@ export class DepartmentsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -90,20 +90,16 @@ export class DepartmentsService {
 
   async getAllDepartments(query: SearchDepartmentQueryDto) {
     try {
-      const { page, limit, sortBy, sortOrder, search } = query;
-      const pageNumber = page ?? 1;
-      const limitNumber = limit ?? 10;
-      const sortByField = sortBy ?? 'createdAt';
-      const sortOrderDirection = sortOrder ?? 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
+      const { page, limit, sortField, sortOrder, search } = query;
+      const skip = (page - 1) * limit;
 
       const queryBuilder = this.departmentRepository
         .createQueryBuilder('department')
         .leftJoinAndSelect('department.manager', 'manager')
         .leftJoinAndSelect('department.employees', 'employees')
-        .orderBy(`department.${sortByField}`, sortOrderDirection)
+        .orderBy(`department.${sortField}`, sortOrder)
         .skip(skip)
-        .take(limitNumber)
+        .take(limit)
         .select([
           'department.id',
           'department.name',
@@ -130,8 +126,9 @@ export class DepartmentsService {
         result: departments,
         pagination: {
           total,
-          page: pageNumber,
-          limit: limitNumber,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -139,7 +136,7 @@ export class DepartmentsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -208,7 +205,7 @@ export class DepartmentsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -234,7 +231,7 @@ export class DepartmentsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

@@ -26,7 +26,7 @@ import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
-  @Get('all')
+  @Get('')
   @Roles(ERole.ADMIN, ERole.MANAGER)
   @ResponseMessage('Get all employees successful')
   async getAllEmployees(

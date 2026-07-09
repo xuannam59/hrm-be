@@ -9,6 +9,12 @@ class SearchHistoryQueryDto extends BaseSearchDto {
   @IsString()
   search?: string;
 
+  @ApiPropertyOptional({ example: 'department', type: Number })
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  departmentId?: number;
+
   @ApiPropertyOptional({ example: 'employee', type: Number })
   @IsOptional()
   @IsNumber()

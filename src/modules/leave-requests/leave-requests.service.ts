@@ -1,4 +1,22 @@
 import {
+  END_WORK_TIME,
+  START_WORK_TIME,
+  WORK_HOURS,
+} from '@/common/constants/attendance.constant';
+import { ERole } from '@/common/constants/role.constant';
+import { EAttendanceStatus } from '@/common/types/attendance.type';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { EEmployeeStatus } from '@/common/types/employee.type';
+import {
+  ELeaveRequestStatus,
+  ELeaveType,
+} from '@/common/types/leave-request.type';
+import { EUserStatus, IUser } from '@/common/types/user.type';
+import {
+  getEarliestLeaveRequestDate,
+  getNumberOfLeaveDays,
+} from '@/common/utils/date.util';
+import {
   BadRequestException,
   ForbiddenException,
   HttpException,
@@ -6,40 +24,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import {
-  UpdateLeaveRequestStatusDto,
-  UpdateMyLeaveRequestDto,
-} from './dto/update-leave-request.dto';
-import { IUser } from '@/common/types/user.type';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, Not, Repository } from 'typeorm';
-import { LeaveRequestEntity } from './entities/leave-request.entity';
+import {
+  Brackets,
+  DataSource,
+  IsNull,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
+import { AttendanceEntity } from '../attendance/entities/attendance.entity';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import {
   SearchLeaveQueryDto,
   SearchMyLeaveQueryDto,
 } from './dto/search-leave-query.dto';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { requireEmployee } from '@/common/utils/user-context.util';
 import {
-  getEarliestLeaveRequestDate,
-  getNumberOfLeaveDays,
-} from '@/common/utils/date.util';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
-import { ERole } from '@/common/constants/role.constant';
-import { EUserStatus } from '@/common/types/user.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
-import {
-  ELeaveRequestStatus,
-  ELeaveType,
-} from '@/common/types/leave-request.type';
-import { AttendanceEntity } from '../attendance/entities/attendance.entity';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
-import {
-  END_WORK_TIME,
-  WORK_HOURS,
-} from '@/common/constants/attendance.constant';
-import { START_WORK_TIME } from '@/common/constants/attendance.constant';
+  UpdateLeaveRequestStatusDto,
+  UpdateMyLeaveRequestDto,
+} from './dto/update-leave-request.dto';
+import { LeaveRequestEntity } from './entities/leave-request.entity';
+import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
+import { EBenefitType } from '@/common/types/benefit.type';
 
 @Injectable()
 export class LeaveRequestsService {
@@ -48,12 +55,13 @@ export class LeaveRequestsService {
     private readonly leaveRequestRepository: Repository<LeaveRequestEntity>,
     @InjectRepository(EmployeeEntity)
     private readonly employeeRepository: Repository<EmployeeEntity>,
+    @InjectRepository(EmployeeBenefitEntity)
+    private readonly employeeBenefitRepository: Repository<EmployeeBenefitEntity>,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(createLeaveRequestDto: CreateLeaveRequestDto, actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const { approverId, startDate, endDate, leaveType, reason } =
         createLeaveRequestDto;
 
@@ -85,7 +93,10 @@ export class LeaveRequestsService {
         throw new NotFoundException('Approver not found');
       }
 
-      if (employeeInfo.departmentId !== approverInfo.departmentId) {
+      if (
+        actor.role !== ERole.EMPLOYEE &&
+        actor.employee.departmentId !== approverInfo.departmentId
+      ) {
         throw new BadRequestException('Not in the same department');
       }
 
@@ -98,7 +109,7 @@ export class LeaveRequestsService {
         );
       }
 
-      if (approverId === employeeInfo.id) {
+      if (approverId === actor.employee.id) {
         throw new BadRequestException(
           'Cannot submit a leave request to yourself',
         );
@@ -124,7 +135,7 @@ export class LeaveRequestsService {
       const overlappingRequest = await this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .where('leaveRequest.employeeId = :employeeId', {
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
         })
         .andWhere('leaveRequest.status IN (:...statuses)', {
           statuses: [ELeaveRequestStatus.PENDING, ELeaveRequestStatus.APPROVED],
@@ -147,7 +158,7 @@ export class LeaveRequestsService {
         endDate: requestEnd,
         leaveType,
         reason,
-        employeeId: employeeInfo.id,
+        employeeId: actor.employee.id,
         numberOfDays,
       });
       const savedLeaveRequest =
@@ -159,7 +170,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -169,38 +180,33 @@ export class LeaveRequestsService {
   }
 
   async findAll(
-    searchLeaveQueryDto: SearchLeaveQueryDto,
+    query: SearchLeaveQueryDto,
     actor: IUser,
   ): Promise<IPaginationResponse<LeaveRequestEntity>> {
     try {
-      const employeeInfo = requireEmployee(actor);
       const {
         page,
         limit,
-        sortBy,
+        sortField,
         sortOrder,
         from,
         to,
         employeeId,
         leaveType,
         status,
-      } = searchLeaveQueryDto;
-      const pageNumber = page ? page : 1;
-      const limitNumber = limit ? limit : 10;
-      const sortByColumn = sortBy ? sortBy : 'createdAt';
-      const orderBy = sortOrder ? sortOrder : 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
-      const take = limitNumber;
+      } = query;
+
+      const skip = (page - 1) * limit;
 
       const queryBuilder = this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .leftJoinAndSelect('leaveRequest.employee', 'employee')
         .where('leaveRequest.approverId = :approverId', {
-          approverId: employeeInfo.id,
+          approverId: actor.employee.id,
         })
         .skip(skip)
-        .take(take)
-        .orderBy(`leaveRequest.${sortByColumn}`, orderBy)
+        .take(limit)
+        .orderBy(`leaveRequest.${sortField}`, sortOrder)
         .select([
           'leaveRequest.id',
           'leaveRequest.startDate',
@@ -251,9 +257,9 @@ export class LeaveRequestsService {
         result: leaveRequests,
         pagination: {
           total,
-          page: pageNumber,
-          limit: limitNumber,
-          totalPages: Math.ceil(total / limitNumber),
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -261,7 +267,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -275,24 +281,18 @@ export class LeaveRequestsService {
     actor: IUser,
   ) {
     try {
-      const { page, limit, sortBy, sortOrder, from, to, leaveType, status } =
+      const { page, limit, sortField, sortOrder, from, to, leaveType, status } =
         searchLeaveQueryDto;
-      const pageNumber = page ? page : 1;
-      const limitNumber = limit ? limit : 10;
-      const sortByColumn = sortBy ? sortBy : 'createdAt';
-      const orderBy = sortOrder ? sortOrder : 'DESC';
-      const skip = (pageNumber - 1) * limitNumber;
-      const take = limitNumber;
+      const skip = (page - 1) * limit;
 
-      const employeeInfo = requireEmployee(actor);
       const queryBuilder = this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .where('leaveRequest.employeeId = :employeeId', {
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
         })
         .skip(skip)
-        .take(take)
-        .orderBy(`leaveRequest.${sortByColumn}`, orderBy)
+        .take(limit)
+        .orderBy(`leaveRequest.${sortField}`, sortOrder)
         .select([
           'leaveRequest.id',
           'leaveRequest.numberOfDays',
@@ -334,9 +334,9 @@ export class LeaveRequestsService {
         result: leaveRequests,
         pagination: {
           total,
-          page: pageNumber,
-          limit: limitNumber,
-          totalPages: Math.ceil(total / limitNumber),
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
         },
       };
     } catch (error) {
@@ -344,7 +344,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -355,7 +355,6 @@ export class LeaveRequestsService {
 
   async findOne(id: number, actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const queryBuilder = this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .leftJoinAndSelect('leaveRequest.employee', 'employee')
@@ -363,9 +362,9 @@ export class LeaveRequestsService {
         .andWhere(
           new Brackets((qb) => {
             qb.where('leaveRequest.employeeId = :employeeId', {
-              employeeId: employeeInfo.id,
+              employeeId: actor.employee.id,
             }).orWhere('leaveRequest.approverId = :approverId', {
-              approverId: employeeInfo.id,
+              approverId: actor.employee.id,
               status: ELeaveRequestStatus.PENDING,
             });
           }),
@@ -393,7 +392,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -408,14 +407,13 @@ export class LeaveRequestsService {
     actor: IUser,
   ) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const { startDate, endDate, leaveType, reason } = updateLeaveRequestDto;
 
       const leaveRequest = await this.leaveRequestRepository.findOne({
         where: {
           id,
           status: ELeaveRequestStatus.PENDING,
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
         },
       });
       if (!leaveRequest) {
@@ -441,7 +439,7 @@ export class LeaveRequestsService {
       const overlappingRequest = await this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .where('leaveRequest.employeeId = :employeeId', {
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
         })
         .andWhere('leaveRequest.status IN (:...statuses)', {
           statuses: [ELeaveRequestStatus.PENDING, ELeaveRequestStatus.APPROVED],
@@ -472,7 +470,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -487,7 +485,6 @@ export class LeaveRequestsService {
     actor: IUser,
   ) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const { status, note } = updateLeaveRequestDto;
 
       const leaveRequest = await this.leaveRequestRepository.findOne({
@@ -497,7 +494,7 @@ export class LeaveRequestsService {
         throw new NotFoundException('Leave request not found');
       }
 
-      if (leaveRequest.approverId !== employeeInfo.id) {
+      if (leaveRequest.approverId !== actor.employee.id) {
         throw new ForbiddenException('You are not authorized');
       }
 
@@ -523,12 +520,20 @@ export class LeaveRequestsService {
               status: EAttendanceStatus.ABSENT,
             })),
           );
+
+          await transactionalEntityManager.decrement(
+            EmployeeBenefitEntity,
+            {
+              employeeId: leaveRequest.employeeId,
+              benefitType: EBenefitType.ANNUAL_LEAVE,
+              effectiveTo: IsNull() || MoreThanOrEqual(new Date()),
+            },
+            'value',
+            leaveRequest.numberOfDays,
+          );
         }
         await transactionalEntityManager.update(LeaveRequestEntity, id, {
-          status:
-            status === ELeaveRequestStatus.APPROVED
-              ? ELeaveRequestStatus.APPROVED
-              : ELeaveRequestStatus.REJECTED,
+          status,
           note,
         });
       });
@@ -538,7 +543,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,
@@ -549,11 +554,10 @@ export class LeaveRequestsService {
 
   async remove(id: number, actor: IUser) {
     try {
-      const employeeInfo = requireEmployee(actor);
       const leaveRequest = await this.leaveRequestRepository.findOne({
         where: {
           id,
-          employeeId: employeeInfo.id,
+          employeeId: actor.employee.id,
           status: ELeaveRequestStatus.PENDING,
         },
       });
@@ -569,7 +573,7 @@ export class LeaveRequestsService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         {
           cause: error,

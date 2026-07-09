@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
-import { EntityBase } from '@/common/bases/entity.base';
+import { BaseEntity } from '@/common/bases/entity.base';
 import { EmploymentHistoryEntity } from '@/modules/employee-histories/entities/employment-history.entity';
 
 @Entity('Department')
-export class DepartmentEntity extends EntityBase {
+export class DepartmentEntity extends BaseEntity {
   @Column({ unique: true })
   name: string;
 

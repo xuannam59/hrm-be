@@ -18,7 +18,6 @@ import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { ERole } from '@/common/constants/role.constant';
 
 @Injectable()
 export class AuthService {
@@ -50,7 +49,6 @@ export class AuthService {
           employee: {
             id: true,
             departmentId: true,
-            employeeCode: true,
           },
         },
       });
@@ -67,7 +65,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -77,9 +75,8 @@ export class AuthService {
   async login(user: IUser, res: Response) {
     try {
       const payloadToken: IPayloadToken = {
-        sub: user.id,
+        userId: user.id,
         email: user.email,
-        role: user.role,
         status: user.status,
       };
 
@@ -107,7 +104,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -126,7 +123,6 @@ export class AuthService {
           role: true,
           employee: {
             id: true,
-            employeeCode: true,
             firstName: true,
             lastName: true,
             avatar: true,
@@ -143,7 +139,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );
@@ -165,8 +161,7 @@ export class AuthService {
 
       const payloadToken: IPayloadToken = {
         email: user.email,
-        sub: user.id,
-        role: user.role,
+        userId: user.id,
         status: user.status,
       };
 
@@ -241,7 +236,7 @@ export class AuthService {
         throw error;
       }
       throw new HttpException(
-        'Internal server error',
+        error?.message ?? 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

@@ -1,31 +1,31 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ESortOrder } from '../types/common.type';
 
 class BaseSearchDto {
   @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page?: number;
+  @IsOptional()
+  page: number = 1;
 
   @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit?: number;
+  limit: number = 10;
 
   @ApiPropertyOptional({ example: 'createdAt' })
   @IsOptional()
   @IsString()
-  sortBy?: string;
+  sortField: string = 'createdAt';
 
-  @ApiPropertyOptional({ enum: ['ASC', 'DESC'], example: 'DESC' })
+  @ApiPropertyOptional({ enum: ESortOrder, example: ESortOrder.DESC })
   @IsOptional()
-  @IsEnum(['ASC', 'DESC'])
-  sortOrder?: 'ASC' | 'DESC';
+  @IsEnum(ESortOrder)
+  sortOrder: ESortOrder = ESortOrder.DESC;
 }
 
 export default BaseSearchDto;

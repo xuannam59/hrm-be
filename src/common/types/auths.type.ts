@@ -7,8 +7,7 @@ export interface ILoginResponse {
 }
 
 export interface IPayloadToken {
-  sub: number;
+  userId: number;
   email: string;
-  role: ERole;
   status: string;
 }
