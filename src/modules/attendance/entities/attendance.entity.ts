@@ -16,8 +16,8 @@ export class AttendanceEntity extends BaseEntity {
   @Column({ type: 'time', name: 'check_in' })
   checkIn: string;
 
-  @Column({ type: 'time', name: 'check_out', nullable: true })
-  checkOut?: string;
+  @Column({ type: 'time', name: 'check_out' })
+  checkOut: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   workHours: number;

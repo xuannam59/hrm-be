@@ -70,6 +70,7 @@ export class AttendanceService {
         employeeId: employee.id,
         workDate,
         checkIn: formatLocalTime(),
+        checkOut: formatLocalTime(),
         status: this.resolveStatus(now),
         workHours: 0,
       });
@@ -110,10 +111,6 @@ export class AttendanceService {
 
       if (!attendance.checkIn) {
         throw new BadRequestException('Cannot check out without check-in time');
-      }
-
-      if (attendance.checkOut) {
-        throw new ConflictException('Already checked out today');
       }
 
       const checkOut = formatLocalTime(now);
