@@ -1,3 +1,5 @@
+import { EImportEmployeeColumns } from '../constants/employee.constant';
+
 export interface IEmployee {
   id: number;
   employeeCode: string;
@@ -24,4 +26,19 @@ export enum EGenderType {
 export enum EEmployeeStatus {
   WORKING = 'WORKING',
   RETIRED = 'RETIRED',
+}
+
+export interface IEmployeeImportRow {
+  [EImportEmployeeColumns.FIRST_NAME]: string | undefined;
+  [EImportEmployeeColumns.LAST_NAME]: string | undefined;
+  [EImportEmployeeColumns.EMAIL]: string | undefined;
+  [EImportEmployeeColumns.DEPARTMENT_ID]: string | undefined;
+  [EImportEmployeeColumns.POSITION]: string | undefined;
+  [EImportEmployeeColumns.HIRE_DATE]?: string;
+  [EImportEmployeeColumns.PHONE]: string | undefined;
+  [EImportEmployeeColumns.ADDRESS]: string | undefined;
+  [EImportEmployeeColumns.GENDER]: string | undefined;
+  [EImportEmployeeColumns.BIRTHDAY]: string | undefined;
+  [EImportEmployeeColumns.BASIC_SALARY]: string | undefined;
+  [EImportEmployeeColumns.STATUS]: string | undefined;
 }

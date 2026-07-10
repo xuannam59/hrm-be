@@ -36,3 +36,21 @@ export const ALLOWED_SORT_FIELDS_EMPLOYEE = [
   'position',
   'status',
 ];
+
+export enum EImportEmployeeColumns {
+  FIRST_NAME = 'firstName',
+  LAST_NAME = 'lastName',
+  EMAIL = 'email',
+  DEPARTMENT_ID = 'departmentId',
+  POSITION = 'position',
+  HIRE_DATE = 'hireDate',
+  PHONE = 'phone',
+  ADDRESS = 'address',
+  GENDER = 'gender',
+  BIRTHDAY = 'birthday',
+  BASIC_SALARY = 'basicSalary',
+  STATUS = 'status',
+}
+
+export const GENDER_VALUES = ['OTHER', 'MALE', 'FEMALE'];
+export const STATUS_VALUES = ['RETIRED', 'WORKING'];

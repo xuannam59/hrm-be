@@ -1,8 +1,20 @@
+import {
+  ALLOWED_SORT_FIELDS_EMPLOYEE,
+  EImportEmployeeColumns,
+  EMPLOYEE_SELECT,
+  GENDER_VALUES,
+  STATUS_VALUES,
+} from '@/common/constants/employee.constant';
 import { ERole } from '@/common/constants/role.constant';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
+import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
+import { IErrorRow, IPaginationResponse } from '@/common/types/common.type';
+import {
+  EEmployeeStatus,
+  IEmployeeImportRow,
+} from '@/common/types/employee.type';
 import { EUserStatus, IUser } from '@/common/types/user.type';
 import { hashString } from '@/common/utils/crypto.util';
+import { readExcelFile } from '@/common/utils/file.util';
 import { buildDisplayName } from '@/common/utils/user-context.util';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
 import {
@@ -16,6 +28,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, DataSource, IsNull, Repository } from 'typeorm';
 import { DepartmentEntity } from '../departments/entities/department.entity';
+import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
 import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import CreateEmployeeDto from './dto/create-employee.dto';
@@ -24,13 +37,13 @@ import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 import UpdateEmployeeDto from './dto/update-employee.dto';
 import { EmployeeEntity } from './entities/employee.entity';
 import {
-  ALLOWED_SORT_FIELDS_EMPLOYEE,
-  EMPLOYEE_SELECT,
-} from '@/common/constants/employee.constant';
-import { EmployeeInsuranceEntity } from '../employee-insurance/entities/employee-insurance.entity';
-import { EInsuranceType } from '@/common/types/insurance.type';
-import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
-import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
+  convertEmployeeDataToObject,
+  validateEmployeeImport,
+  validateEmployeeImportHeaders,
+} from '@/common/utils/employee.util';
+import { formatDate } from '@/common/utils/date.util';
+import { CHUNK_SIZE } from '@/common/constants/common.constant';
+import { generateRandomString } from '@/common/utils/string.util';
 
 @Injectable()
 export class EmployeesService {
@@ -513,6 +526,156 @@ export class EmployeesService {
             `Employee ${displayName} updated profile successfully by ${actor.email}`,
           );
           return 'Update employee profile successful';
+        },
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async importEmployees(file: Express.Multer.File) {
+    try {
+      const { headers, csvData } = readExcelFile(file);
+
+      const errorsResult: IErrorRow[] = [];
+
+      if (!headers || !validateEmployeeImportHeaders(headers)) {
+        throw new BadRequestException('Headers is not valid format');
+      }
+
+      const data = convertEmployeeDataToObject(csvData);
+
+      const departments = await this.departmentRepository.find({
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
+      const departmentIds = departments.map((department) => department.id);
+      const listEmails: string[] = [];
+
+      const listEmployeeInfo: IEmployeeImportRow[] = [];
+
+      for (const [rowIndex, employee] of data.entries()) {
+        const errorRow = validateEmployeeImport(employee);
+
+        if (
+          employee[EImportEmployeeColumns.DEPARTMENT_ID] &&
+          !departmentIds.includes(
+            parseInt(employee[EImportEmployeeColumns.DEPARTMENT_ID]),
+          )
+        ) {
+          errorRow.push('Department is not valid');
+        }
+
+        const email = employee[EImportEmployeeColumns.EMAIL];
+
+        if (email) {
+          if (listEmails.includes(email)) {
+            errorRow.push('Email is duplicated');
+          }
+
+          const existingEmail = await this.userRepository.findOne({
+            where: { email: email },
+            select: {
+              id: true,
+            },
+          });
+
+          if (existingEmail) {
+            errorRow.push('Email already exists');
+          }
+
+          listEmails.push(email);
+        }
+
+        if (errorRow.length > 0) {
+          errorsResult.push({
+            rowIndex: rowIndex + 1,
+            errors: errorRow,
+          });
+        }
+
+        listEmployeeInfo.push({
+          firstName: employee[EImportEmployeeColumns.FIRST_NAME],
+          lastName: employee[EImportEmployeeColumns.LAST_NAME],
+          email: employee[EImportEmployeeColumns.EMAIL],
+          departmentId: employee[EImportEmployeeColumns.DEPARTMENT_ID],
+          position: employee[EImportEmployeeColumns.POSITION],
+          basicSalary: employee[EImportEmployeeColumns.BASIC_SALARY],
+          hireDate: formatDate(employee[EImportEmployeeColumns.HIRE_DATE]),
+          phone: employee[EImportEmployeeColumns.PHONE],
+          address: employee[EImportEmployeeColumns.ADDRESS],
+          birthday: formatDate(employee[EImportEmployeeColumns.BIRTHDAY]),
+          gender: employee[EImportEmployeeColumns.GENDER],
+          status: employee[EImportEmployeeColumns.STATUS],
+        });
+      }
+
+      if (errorsResult.length > 0) {
+        return errorsResult;
+      }
+
+      return await this.dataSource.transaction(
+        async (transactionalEntityManager) => {
+          const transactionResult: any[] = [];
+          for (const employee of listEmployeeInfo) {
+            const result = await transactionalEntityManager.save(
+              EmployeeEntity,
+              {
+                firstName: employee.firstName,
+                lastName: employee.lastName,
+                departmentId: Number(employee.departmentId),
+                position: employee.position,
+                hireDate: employee.hireDate,
+                phone: employee.phone?.padStart(10, '0'),
+                address: employee.address,
+                birthday: employee.birthday,
+                gender: GENDER_VALUES[employee.gender || 0],
+                status: STATUS_VALUES[employee.status || 0],
+              },
+            );
+
+            await transactionalEntityManager.save(EmploymentHistoryEntity, {
+              employeeId: result.id,
+              departmentId: Number(employee.departmentId),
+              position: employee.position,
+              basicSalary: Number(employee.basicSalary),
+              startDate: employee.hireDate,
+            });
+
+            const password = generateRandomString(10);
+
+            await transactionalEntityManager.save(UserEntity, {
+              email: employee.email,
+              displayName: buildDisplayName(
+                employee.firstName || '',
+                employee.lastName || '',
+              ),
+              password: await hashString(password),
+              role: ERole.EMPLOYEE,
+              status:
+                result.status === EEmployeeStatus.WORKING
+                  ? EUserStatus.ACTIVE
+                  : EUserStatus.INACTIVE,
+              employeeId: result.id,
+            });
+
+            transactionResult.push({
+              ...result,
+              password: password,
+            });
+          }
+
+          return transactionResult;
         },
       );
     } catch (error) {

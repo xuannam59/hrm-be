@@ -12,3 +12,8 @@ export enum ESortOrder {
   ASC = 'ASC',
   DESC = 'DESC',
 }
+
+export interface IErrorRow {
+  rowIndex: number;
+  errors: string[];
+}

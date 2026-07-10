@@ -144,3 +144,15 @@ export const isDateActive = (from: Date, to?: Date, at: Date = new Date()) => {
 
   return to >= checkDate;
 };
+
+export const formatDate = (dateString?: string) => {
+  if (!dateString) {
+    return undefined;
+  }
+
+  const y = dateString.slice(0, 4);
+  const m = dateString.slice(4, 6);
+  const d = dateString.slice(6, 8);
+
+  return `${y}-${m}-${d}`;
+};
