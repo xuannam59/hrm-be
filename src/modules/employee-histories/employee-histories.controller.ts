@@ -31,9 +31,9 @@ export class EmployeeHistoriesController {
   }
 
   @Get()
-  @Roles(ERole.ADMIN, ERole.MANAGER)
-  findAll(@Query() query: SearchHistoryQueryDto, @User() actor: IUser) {
-    return this.employeeHistoriesService.findAll(query, actor);
+  @Roles(ERole.ADMIN)
+  findAll(@Query() query: SearchHistoryQueryDto) {
+    return this.employeeHistoriesService.findAll(query);
   }
 
   @Get('me')
@@ -42,9 +42,9 @@ export class EmployeeHistoriesController {
   }
 
   @Get(':id')
-  @Roles(ERole.ADMIN, ERole.MANAGER)
-  findOne(@Param('id', ParseIntPipe) id: number, @User() actor: IUser) {
-    return this.employeeHistoriesService.findOne(id, actor);
+  @Roles(ERole.ADMIN)
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.employeeHistoriesService.findOne(id);
   }
 
   @Patch(':id')

@@ -12,7 +12,6 @@ import { EmployeeEducationsModule } from './modules/employee-educations/employee
 import { EmployeeInsuranceModule } from './modules/employee-insurance/employee-insurance.module';
 import { EmployeeBenefitModule } from './modules/employee-benefit/employee-benefit.module';
 import { PayrollsModule } from './modules/payrolls/payrolls.module';
-import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -31,7 +30,6 @@ import { UploadModule } from './modules/upload/upload.module';
     EmployeeInsuranceModule,
     EmployeeBenefitModule,
     PayrollsModule,
-    UploadModule,
   ],
 })
 export class AppModule {}

@@ -50,10 +50,14 @@ export class EmployeesController {
   }
 
   @Get('me')
-  @Roles(ERole.EMPLOYEE, ERole.MANAGER)
   @ResponseMessage('Get my employee profile successful')
   async getMyEmployeeProfile(@User() actor: IUser) {
     return this.employeesService.getMyEmployeeProfile(actor);
+  }
+
+  @Get('manager')
+  async getManagerEmployees(@User() actor: IUser) {
+    return this.employeesService.getManagerEmployees(actor);
   }
 
   @Post()
@@ -96,7 +100,7 @@ export class EmployeesController {
   }
 
   @Post('import')
-  // @Roles(ERole.ADMIN)
+  @Roles(ERole.ADMIN)
   @Public()
   @ApiConsumes('multipart/form-data')
   @ApiBody({

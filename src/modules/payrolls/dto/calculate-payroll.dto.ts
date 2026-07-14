@@ -1,5 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class CalculatePayrollDto {
   @ApiProperty({ example: 1 })
@@ -15,4 +23,11 @@ export class CalculatePayrollDto {
   @Min(2000)
   @Max(2100)
   year: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsInt({ each: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsArray()
+  employeeIds?: number[];
 }

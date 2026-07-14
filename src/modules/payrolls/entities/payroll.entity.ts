@@ -1,5 +1,4 @@
 import { BaseEntity } from '@/common/bases/entity.base';
-import { EPayrollStatus } from '@/common/types/payroll.type';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
@@ -61,9 +60,6 @@ export class PayrollEntity extends BaseEntity {
 
   @Column({ type: 'decimal', name: 'net_salary', precision: 10, scale: 2 })
   netSalary: number;
-
-  @Column({ type: 'enum', enum: EPayrollStatus })
-  status: EPayrollStatus;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.payrolls)
   @JoinColumn({ name: 'employee_id' })

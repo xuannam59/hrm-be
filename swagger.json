@@ -1,0 +1,2893 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/users/all": {
+      "get": {
+        "operationId": "UsersController_getAllUsers_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "john",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "EMPLOYEE",
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "MANAGER",
+                "EMPLOYEE"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ACTIVE",
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE",
+                "LOCKED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "operationId": "UsersController_getUserDetail_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateUser_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/get-account": {
+      "get": {
+        "operationId": "AuthController_getAccount_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh-token": {
+      "get": {
+        "operationId": "AuthController_refreshToken_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/employees": {
+      "get": {
+        "operationId": "EmployeesController_getAllEmployees_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "John Doe",
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "WORKING",
+              "type": "string",
+              "enum": [
+                "WORKING",
+                "RETIRED"
+              ]
+            }
+          },
+          {
+            "name": "position",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Software Engineer",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      },
+      "post": {
+        "operationId": "EmployeesController_createEmployee_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/employees/me": {
+      "get": {
+        "operationId": "EmployeesController_getMyEmployeeProfile_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/employees/{id}/provision-account": {
+      "post": {
+        "operationId": "EmployeesController_provisionAccount_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProvisionAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/employees/profile": {
+      "patch": {
+        "operationId": "EmployeesController_updateEmployeeProfile_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/employees/{id}": {
+      "patch": {
+        "operationId": "EmployeesController_updateEmployee_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/employees/import": {
+      "post": {
+        "operationId": "EmployeesController_importEmployees_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Employees"
+        ]
+      }
+    },
+    "/api/v1/departments": {
+      "post": {
+        "operationId": "DepartmentsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Departments"
+        ]
+      },
+      "get": {
+        "operationId": "DepartmentsController_getAl_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "HR",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Departments"
+        ]
+      }
+    },
+    "/api/v1/departments/{id}": {
+      "patch": {
+        "operationId": "DepartmentsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Departments"
+        ]
+      },
+      "delete": {
+        "operationId": "DepartmentsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Departments"
+        ]
+      }
+    },
+    "/api/v1/attendance/check-in": {
+      "post": {
+        "operationId": "AttendanceController_checkIn_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attendance"
+        ]
+      }
+    },
+    "/api/v1/attendance/check-out": {
+      "post": {
+        "operationId": "AttendanceController_checkOut_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attendance"
+        ]
+      }
+    },
+    "/api/v1/attendance": {
+      "get": {
+        "operationId": "AttendanceController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "PRESENT",
+              "type": "string",
+              "enum": [
+                "PRESENT",
+                "ABSENT",
+                "LATE",
+                "WORK_FROM_HOME"
+              ]
+            }
+          },
+          {
+            "name": "departmentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attendance"
+        ]
+      }
+    },
+    "/api/v1/attendance/me": {
+      "get": {
+        "operationId": "AttendanceController_getMyAttendance_v1",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "day",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attendance"
+        ]
+      }
+    },
+    "/api/v1/attendance/{id}": {
+      "patch": {
+        "operationId": "AttendanceController_updateAttendance_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAttendanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Attendance"
+        ]
+      }
+    },
+    "/api/v1/employee-histories": {
+      "post": {
+        "operationId": "EmployeeHistoriesController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeHistoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      },
+      "get": {
+        "operationId": "EmployeeHistoriesController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "john",
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "department",
+              "type": "number"
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "employee",
+              "type": "number"
+            }
+          },
+          {
+            "name": "startDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-07-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-12-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-12-31",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      }
+    },
+    "/api/v1/employee-histories/me": {
+      "get": {
+        "operationId": "EmployeeHistoriesController_getMyHistories_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      }
+    },
+    "/api/v1/employee-histories/{id}": {
+      "get": {
+        "operationId": "EmployeeHistoriesController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      },
+      "patch": {
+        "operationId": "EmployeeHistoriesController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeHistoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      },
+      "delete": {
+        "operationId": "EmployeeHistoriesController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeHistories"
+        ]
+      }
+    },
+    "/api/v1/leave-requests": {
+      "post": {
+        "operationId": "LeaveRequestsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeaveRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      },
+      "get": {
+        "operationId": "LeaveRequestsController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "leaveType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "OTHER",
+              "type": "string",
+              "enum": [
+                "ANNUAL_LEAVE",
+                "UNPAID_LEAVE",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "PENDING",
+              "example": "PENDING",
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      }
+    },
+    "/api/v1/leave-requests/me": {
+      "get": {
+        "operationId": "LeaveRequestsController_getMyLeaveRequests_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaveType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "OTHER",
+              "type": "string",
+              "enum": [
+                "ANNUAL_LEAVE",
+                "UNPAID_LEAVE",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "PENDING",
+              "example": "PENDING",
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      }
+    },
+    "/api/v1/leave-requests/{id}": {
+      "get": {
+        "operationId": "LeaveRequestsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      },
+      "patch": {
+        "operationId": "LeaveRequestsController_updateMyRequest_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyLeaveRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      },
+      "delete": {
+        "operationId": "LeaveRequestsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      }
+    },
+    "/api/v1/leave-requests/{id}/status": {
+      "patch": {
+        "operationId": "LeaveRequestsController_updateStatus_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeaveRequestStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "LeaveRequests"
+        ]
+      }
+    },
+    "/api/v1/employee-educations": {
+      "post": {
+        "operationId": "EmployeeEducationsController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeEducationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      },
+      "get": {
+        "operationId": "EmployeeEducationsController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      }
+    },
+    "/api/v1/employee-educations/me": {
+      "get": {
+        "operationId": "EmployeeEducationsController_findMyEducations_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      }
+    },
+    "/api/v1/employee-educations/{id}": {
+      "get": {
+        "operationId": "EmployeeEducationsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      },
+      "patch": {
+        "operationId": "EmployeeEducationsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeEducationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      },
+      "delete": {
+        "operationId": "EmployeeEducationsController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeEducations"
+        ]
+      }
+    },
+    "/api/v1/employee-insurance": {
+      "post": {
+        "operationId": "EmployeeInsuranceController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeInsuranceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeInsurance"
+        ]
+      },
+      "get": {
+        "operationId": "EmployeeInsuranceController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "insuranceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "HEALTH",
+              "type": "string",
+              "enum": [
+                "SOCIAL",
+                "HEALTH"
+              ]
+            }
+          },
+          {
+            "name": "insuranceNumber",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeInsurance"
+        ]
+      }
+    },
+    "/api/v1/employee-insurance/{id}": {
+      "get": {
+        "operationId": "EmployeeInsuranceController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeInsurance"
+        ]
+      },
+      "patch": {
+        "operationId": "EmployeeInsuranceController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeInsuranceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeInsurance"
+        ]
+      },
+      "delete": {
+        "operationId": "EmployeeInsuranceController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeInsurance"
+        ]
+      }
+    },
+    "/api/v1/employee-benefit": {
+      "post": {
+        "operationId": "EmployeeBenefitController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeBenefitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      },
+      "get": {
+        "operationId": "EmployeeBenefitController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "benefitType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ANNUAL_LEAVE",
+              "type": "string",
+              "enum": [
+                "ANNUAL_LEAVE",
+                "ALLOWANCE",
+                "BONUS",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "effectiveFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "effectiveTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      }
+    },
+    "/api/v1/employee-benefit/{id}": {
+      "get": {
+        "operationId": "EmployeeBenefitController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      },
+      "patch": {
+        "operationId": "EmployeeBenefitController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeBenefitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      },
+      "delete": {
+        "operationId": "EmployeeBenefitController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      }
+    },
+    "/api/v1/employee-benefit/me": {
+      "get": {
+        "operationId": "EmployeeBenefitController_findMy_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "EmployeeBenefit"
+        ]
+      }
+    },
+    "/api/v1/payrolls": {
+      "post": {
+        "operationId": "PayrollsController_calculatePayroll_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculatePayrollDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payrolls"
+        ]
+      },
+      "get": {
+        "operationId": "PayrollsController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "employeeId",
+            "required": false,
+            "in": "query",
+            "description": "Employee ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "payrollMonth",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "basicSalary",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1000000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PAID",
+                "FAILED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payrolls"
+        ]
+      }
+    },
+    "/api/v1/payrolls/me": {
+      "get": {
+        "operationId": "PayrollsController_findMy_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payrolls"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Human Resource Manager",
+    "description": "Human Resource Manager API",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "token": {
+        "scheme": "Bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "role": {
+            "type": "string",
+            "example": "ADMIN"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "LOCKED"
+            ],
+            "example": "ACTIVE"
+          }
+        },
+        "required": [
+          "displayName",
+          "role",
+          "status"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "text1233@yopmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "123456789"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "oldPassword": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "confirmNewPassword": {
+            "type": "string",
+            "example": "123456789"
+          }
+        },
+        "required": [
+          "oldPassword",
+          "newPassword",
+          "confirmNewPassword"
+        ]
+      },
+      "ProvisionAccountDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "test123@yopmail.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "12345678!"
+          },
+          "role": {
+            "type": "string",
+            "example": "EMPLOYEE",
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "EMPLOYEE"
+            ]
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "role"
+        ]
+      },
+      "CreateEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "gender": {
+            "type": "string",
+            "example": "MALE",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ]
+          },
+          "birthday": {
+            "format": "date-time",
+            "type": "string",
+            "example": "1990-01-01"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0901234567"
+          },
+          "address": {
+            "type": "string",
+            "example": "Tien Du, Bac Ninh"
+          },
+          "hireDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "position": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "departmentId": {
+            "type": "number",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "example": "WORKING",
+            "enum": [
+              "WORKING",
+              "RETIRED"
+            ],
+            "default": "WORKING"
+          },
+          "basicSalary": {
+            "type": "number",
+            "example": 10000000
+          },
+          "account": {
+            "$ref": "#/components/schemas/ProvisionAccountDto"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "gender",
+          "birthday",
+          "phone",
+          "address",
+          "hireDate",
+          "position",
+          "departmentId",
+          "status",
+          "basicSalary",
+          "account"
+        ]
+      },
+      "UpdateEmployeeProfileDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "gender": {
+            "type": "string",
+            "example": "MALE",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "example": "0901234567"
+          },
+          "address": {
+            "type": "string",
+            "example": "Tien Du, Bac Ninh"
+          },
+          "birthday": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "avatar": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "gender",
+          "phone",
+          "address",
+          "birthday",
+          "avatar"
+        ]
+      },
+      "UpdateEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "hireDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "position": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WORKING",
+              "RETIRED"
+            ],
+            "example": "WORKING"
+          },
+          "departmentId": {
+            "type": "number",
+            "example": "1"
+          },
+          "basicSalary": {
+            "type": "number",
+            "example": 10000000
+          }
+        },
+        "required": [
+          "hireDate",
+          "position",
+          "status",
+          "departmentId",
+          "basicSalary"
+        ]
+      },
+      "CreateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "HR"
+          },
+          "description": {
+            "type": "string",
+            "example": "HR"
+          },
+          "managerId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "managerId"
+        ]
+      },
+      "UpdateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "HR"
+          },
+          "description": {
+            "type": "string",
+            "example": "HR Department"
+          },
+          "managerId": {
+            "type": "number",
+            "example": 1
+          }
+        }
+      },
+      "UpdateAttendanceDto": {
+        "type": "object",
+        "properties": {
+          "checkIn": {
+            "type": "string",
+            "example": "08:30:00"
+          },
+          "checkOut": {
+            "type": "string",
+            "example": "17:30:00"
+          },
+          "status": {
+            "type": "string",
+            "example": "PRESENT",
+            "enum": [
+              "PRESENT",
+              "ABSENT",
+              "LATE",
+              "WORK_FROM_HOME"
+            ]
+          }
+        }
+      },
+      "CreateEmployeeHistoryDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "example": 1
+          },
+          "departmentId": {
+            "type": "number",
+            "example": 1
+          },
+          "position": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "basicSalary": {
+            "type": "number",
+            "example": 10000000
+          }
+        },
+        "required": [
+          "employeeId",
+          "departmentId",
+          "position",
+          "startDate",
+          "endDate",
+          "basicSalary"
+        ]
+      },
+      "UpdateEmployeeHistoryDto": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "number",
+            "example": 1
+          },
+          "position": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          }
+        },
+        "required": [
+          "departmentId",
+          "position",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "CreateLeaveRequestDto": {
+        "type": "object",
+        "properties": {
+          "approverId": {
+            "type": "number",
+            "example": 1
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "leaveType": {
+            "type": "string",
+            "example": "ANNUAL_LEAVE",
+            "enum": [
+              "ANNUAL_LEAVE",
+              "UNPAID_LEAVE",
+              "OTHER"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "I need to take a leave for personal reasons"
+          }
+        },
+        "required": [
+          "approverId",
+          "startDate",
+          "endDate",
+          "leaveType",
+          "reason"
+        ]
+      },
+      "UpdateMyLeaveRequestDto": {
+        "type": "object",
+        "properties": {
+          "approverId": {
+            "type": "number",
+            "example": 1
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "leaveType": {
+            "type": "string",
+            "example": "ANNUAL_LEAVE",
+            "enum": [
+              "ANNUAL_LEAVE",
+              "UNPAID_LEAVE",
+              "OTHER"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "I need to take a leave for personal reasons"
+          }
+        }
+      },
+      "UpdateLeaveRequestStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "APPROVED",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "example": "Oke"
+          }
+        },
+        "required": [
+          "status",
+          "note"
+        ]
+      },
+      "CreateEmployeeEducationDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "description": "The ID of the employee",
+            "example": 1
+          },
+          "school": {
+            "type": "string",
+            "example": "Trường đại học"
+          },
+          "degree": {
+            "type": "string",
+            "example": "Cử nhân"
+          },
+          "fieldOfStudy": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "startYear": {
+            "type": "number",
+            "example": 2020
+          },
+          "endYear": {
+            "type": "number",
+            "example": 2024
+          }
+        },
+        "required": [
+          "employeeId",
+          "school",
+          "degree",
+          "fieldOfStudy",
+          "startYear",
+          "endYear"
+        ]
+      },
+      "UpdateEmployeeEducationDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "description": "The ID of the employee",
+            "example": 1
+          },
+          "school": {
+            "type": "string",
+            "example": "Trường đại học"
+          },
+          "degree": {
+            "type": "string",
+            "example": "Cử nhân"
+          },
+          "fieldOfStudy": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "startYear": {
+            "type": "number",
+            "example": 2020
+          },
+          "endYear": {
+            "type": "number",
+            "example": 2024
+          }
+        }
+      },
+      "CreateEmployeeInsuranceDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "example": 1
+          },
+          "insuranceNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "insuranceType": {
+            "type": "string",
+            "example": "HEALTH",
+            "enum": [
+              "SOCIAL",
+              "HEALTH"
+            ]
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-13T06:50:39.715Z"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-13T06:50:39.715Z"
+          }
+        },
+        "required": [
+          "employeeId",
+          "insuranceNumber",
+          "insuranceType",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "UpdateEmployeeInsuranceDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "example": 1
+          },
+          "insuranceNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "insuranceType": {
+            "type": "string",
+            "example": "HEALTH",
+            "enum": [
+              "SOCIAL",
+              "HEALTH"
+            ]
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-13T06:50:39.715Z"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-13T06:50:39.715Z"
+          }
+        }
+      },
+      "CreateEmployeeBenefitDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "number",
+            "example": 1
+          },
+          "benefitType": {
+            "type": "string",
+            "example": "ANNUAL_LEAVE",
+            "enum": [
+              "ANNUAL_LEAVE",
+              "ALLOWANCE",
+              "BONUS",
+              "OTHER"
+            ]
+          },
+          "benefitName": {
+            "type": "string",
+            "example": "Annual Leave"
+          },
+          "effectiveFrom": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "effectiveTo": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2027-12-31"
+          },
+          "valueType": {
+            "type": "string",
+            "example": "AMOUNT",
+            "enum": [
+              "AMOUNT",
+              "DAY",
+              "PERCENT"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "example": 1000
+          }
+        },
+        "required": [
+          "employeeId",
+          "benefitType",
+          "benefitName",
+          "effectiveFrom",
+          "effectiveTo",
+          "valueType",
+          "value"
+        ]
+      },
+      "UpdateEmployeeBenefitDto": {
+        "type": "object",
+        "properties": {
+          "benefitName": {
+            "type": "string",
+            "example": "Annual Leave"
+          },
+          "effectiveFrom": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "effectiveTo": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2027-12-31"
+          },
+          "valueType": {
+            "type": "string",
+            "example": "AMOUNT",
+            "enum": [
+              "AMOUNT",
+              "DAY",
+              "PERCENT"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "example": 1000
+          }
+        }
+      },
+      "CalculatePayrollDto": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "example": 1
+          },
+          "year": {
+            "type": "number",
+            "example": 2026
+          }
+        },
+        "required": [
+          "month",
+          "year"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "token": []
+    }
+  ]
+}

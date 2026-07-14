@@ -183,6 +183,54 @@ export class EmployeesService {
     }
   }
 
+  async getManagerEmployees(actor: IUser) {
+    try {
+      const departmentId = actor.employee.departmentId;
+      let role: ERole[] = [];
+
+      if (actor.role === ERole.MANAGER) {
+        role = [ERole.ADMIN];
+      } else if (actor.role === ERole.EMPLOYEE) {
+        role = [ERole.MANAGER, ERole.ADMIN];
+      }
+
+      const queryBuilder = this.employeeRepository
+        .createQueryBuilder('employee')
+        .innerJoinAndSelect(
+          'employee.user',
+          'user',
+          'user.role IN (:...roles)',
+          {
+            roles: role,
+          },
+        )
+        .where('employee.departmentId = :departmentId', { departmentId })
+        .andWhere('employee.status = :status', {
+          status: EEmployeeStatus.WORKING,
+        })
+        .select([
+          'employee.id',
+          'employee.firstName',
+          'employee.lastName',
+          'employee.status',
+          'employee.position',
+          'employee.departmentId',
+          'user.id',
+          'user.email',
+          'user.role',
+          'user.status',
+        ]);
+
+      const employees = await queryBuilder.getMany();
+
+      return employees;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+    }
+  }
+
   async createEmployee(createEmployeeDto: CreateEmployeeDto) {
     try {
       const departmentInfo = await this.departmentRepository.findOne({

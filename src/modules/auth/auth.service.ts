@@ -18,6 +18,7 @@ import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { DiscoveryService } from '@nestjs/core';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly discoveryService: DiscoveryService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);

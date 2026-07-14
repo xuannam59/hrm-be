@@ -9,9 +9,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
+import { DiscoveryModule } from '@nestjs/core';
 
 @Module({
   imports: [
+    DiscoveryModule,
     PassportModule,
     UsersModule,
     JwtModule.registerAsync({

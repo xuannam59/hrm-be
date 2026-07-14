@@ -75,7 +75,6 @@ export class EmployeeHistoriesService {
 
   async findAll(
     query: SearchHistoryQueryDto,
-    actor: IUser,
   ): Promise<IPaginationResponse<EmploymentHistoryEntity>> {
     try {
       const {
@@ -128,14 +127,7 @@ export class EmployeeHistoriesService {
         );
       }
 
-      if (actor.role !== ERole.ADMIN) {
-        queryBuilder.andWhere(
-          'employmentHistory.departmentId = :departmentId',
-          {
-            departmentId: actor.employee.departmentId,
-          },
-        );
-      } else if (departmentId) {
+      if (departmentId) {
         queryBuilder.andWhere(
           'employmentHistory.departmentId = :departmentId',
           {
@@ -196,7 +188,7 @@ export class EmployeeHistoriesService {
     }
   }
 
-  async findOne(employmentHistoryId: number, actor: IUser) {
+  async findOne(employmentHistoryId: number) {
     try {
       const queryBuilder = this.employmentHistoryRepository
         .createQueryBuilder('employmentHistory')
@@ -219,14 +211,6 @@ export class EmployeeHistoriesService {
           'department.name',
         ]);
 
-      if (actor.role !== ERole.ADMIN) {
-        queryBuilder.andWhere(
-          'employmentHistory.departmentId = :departmentId',
-          {
-            departmentId: actor.employee.departmentId,
-          },
-        );
-      }
       const employmentHistory = await queryBuilder.getOne();
 
       if (!employmentHistory) {

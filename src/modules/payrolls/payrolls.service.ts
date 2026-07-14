@@ -19,7 +19,7 @@ import {
 } from '@/common/utils/date.util';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CalculatePayrollDto } from './dto/calculate-payroll.dto';
 import { SearchPayrollQueryDto } from './dto/search-payroll-query.dto';
@@ -38,7 +38,7 @@ export class PayrollsService {
 
   async calculatePayroll(calculatePayrollDto: CalculatePayrollDto) {
     try {
-      const { month, year } = calculatePayrollDto;
+      const { month, year, employeeIds } = calculatePayrollDto;
       const monthStart = new Date(year, month - 1, 1);
       monthStart.setHours(0, 0, 0, 0);
       const monthEnd = new Date(year, month, 0);
@@ -84,6 +84,12 @@ export class PayrollsService {
           'attendances.workHours',
         ]);
 
+      if (employeeIds) {
+        queryBuilder.andWhere('employee.id IN (:...employeeIds)', {
+          employeeIds,
+        });
+      }
+
       const listEmployees = await queryBuilder.getMany();
       const { weekendDays, totalDays } = getWeekendAndTotalDays(year, month);
 
@@ -94,7 +100,19 @@ export class PayrollsService {
       return this.dataSource.transaction(async (transactionalEntityManager) => {
         const listPayrolls: any[] = [];
 
-        await transactionalEntityManager.delete(PayrollEntity, { month, year });
+        const deleteConditions: any = {
+          month,
+          year,
+        };
+
+        if (employeeIds) {
+          deleteConditions.employeeId = In(employeeIds);
+        }
+
+        await transactionalEntityManager.delete(
+          PayrollEntity,
+          deleteConditions,
+        );
 
         for (const employee of listEmployees) {
           const currentEmploymentHistory = employee.employmentHistories.find(
@@ -169,7 +187,6 @@ export class PayrollsService {
             netSalary: Math.max(netSalary, 0),
             healthInsuranceAmount: healthInsuranceValue,
             socialInsuranceAmount: socialInsuranceValue,
-            status: EPayrollStatus.PENDING,
           });
         }
 
