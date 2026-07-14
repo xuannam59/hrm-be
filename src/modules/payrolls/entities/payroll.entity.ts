@@ -23,6 +23,9 @@ export class PayrollEntity extends BaseEntity {
   @Column({ type: 'decimal', name: 'work_days', precision: 10, scale: 2 })
   workDays: number;
 
+  @Column({ type: 'decimal', name: 'leave_days', precision: 10, scale: 2 })
+  leaveDays: number;
+
   @Column({
     type: 'decimal',
     name: 'allowance_amount',

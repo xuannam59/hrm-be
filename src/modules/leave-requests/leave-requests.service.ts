@@ -499,10 +499,31 @@ export class LeaveRequestsService {
       }
 
       await this.dataSource.transaction(async (transactionalEntityManager) => {
-        if (
-          status === ELeaveRequestStatus.APPROVED &&
-          leaveRequest.leaveType === ELeaveType.ANNUAL_LEAVE
-        ) {
+        const isLeaveTypeValid = [
+          ELeaveType.ANNUAL_LEAVE,
+          ELeaveType.WORK_FROM_HOME,
+        ].includes(leaveRequest.leaveType);
+
+        if (status === ELeaveRequestStatus.APPROVED && isLeaveTypeValid) {
+          let attendanceStatus = EAttendanceStatus.ABSENT;
+
+          if (leaveRequest.leaveType === ELeaveType.ANNUAL_LEAVE) {
+            attendanceStatus = EAttendanceStatus.ABSENT;
+
+            await transactionalEntityManager.decrement(
+              EmployeeBenefitEntity,
+              {
+                employeeId: leaveRequest.employeeId,
+                benefitType: EBenefitType.ANNUAL_LEAVE,
+                effectiveTo: IsNull() || MoreThanOrEqual(new Date()),
+              },
+              'value',
+              leaveRequest.numberOfDays,
+            );
+          } else if (leaveRequest.leaveType === ELeaveType.WORK_FROM_HOME) {
+            attendanceStatus = EAttendanceStatus.WORK_FROM_HOME;
+          }
+
           const requestStart = new Date(leaveRequest.startDate);
           requestStart.setHours(0, 0, 0, 0);
           const y = requestStart.getFullYear();
@@ -517,21 +538,11 @@ export class LeaveRequestsService {
               checkIn: START_WORK_TIME,
               checkOut: END_WORK_TIME,
               workHours: WORK_HOURS,
-              status: EAttendanceStatus.ABSENT,
+              status: attendanceStatus,
             })),
           );
-
-          await transactionalEntityManager.decrement(
-            EmployeeBenefitEntity,
-            {
-              employeeId: leaveRequest.employeeId,
-              benefitType: EBenefitType.ANNUAL_LEAVE,
-              effectiveTo: IsNull() || MoreThanOrEqual(new Date()),
-            },
-            'value',
-            leaveRequest.numberOfDays,
-          );
         }
+
         await transactionalEntityManager.update(LeaveRequestEntity, id, {
           status,
           note,

@@ -288,9 +288,20 @@ export class EmployeesService {
             },
           );
 
+          const employeeBenefit = transactionalEntityManager.create(
+            EmployeeBenefitEntity,
+            {
+              employeeId: employee.id,
+              benefitType: EBenefitType.ANNUAL_LEAVE,
+              value: 1.0,
+              effectiveFrom: createEmployeeDto.hireDate,
+            },
+          );
+
           await Promise.all([
             transactionalEntityManager.save(employmentHistory),
             transactionalEntityManager.save(employee),
+            transactionalEntityManager.save(employeeBenefit),
           ]);
 
           if (createEmployeeDto.account) {
@@ -717,6 +728,16 @@ export class EmployeesService {
                   position: emp.position,
                   basicSalary: Number(chunk[idx].basicSalary) || 0,
                   startDate: emp.hireDate,
+                })),
+              );
+
+              await transactionalEntityManager.save(
+                EmployeeBenefitEntity,
+                employees.map((emp) => ({
+                  employeeId: emp.id,
+                  benefitType: EBenefitType.ANNUAL_LEAVE,
+                  value: 1.0,
+                  effectiveFrom: emp.hireDate,
                 })),
               );
 

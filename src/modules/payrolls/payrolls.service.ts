@@ -2,18 +2,21 @@ import {
   END_WORK_TIME,
   WORK_HOURS,
 } from '@/common/constants/attendance.constant';
-import { INSURANCE_RATE } from '@/common/constants/insurance.contant';
+import { EBenefitType } from '@/common/constants/benefit.constant';
+import { CHUNK_SIZE } from '@/common/constants/common.constant';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
+import {
+  EInsuranceType,
+  INSURANCE_RATE,
+} from '@/common/constants/insurance.contant';
 import {
   ALLOWED_SORT_FIELDS_PAYROLL,
   PAYROLL_SELECT,
 } from '@/common/constants/payroll.constant';
-import { EBenefitType } from '@/common/constants/benefit.constant';
-import { EEmployeeStatus } from '@/common/constants/employee.constant';
-import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { IUser } from '@/common/types/user.type';
 import {
   calculateWorkHours,
-  getWeekendAndTotalDays,
+  getWorkingDaysAndWeekendDaysInMonth,
   isDateActive,
 } from '@/common/utils/date.util';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -23,7 +26,6 @@ import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CalculatePayrollDto } from './dto/calculate-payroll.dto';
 import { SearchPayrollQueryDto } from './dto/search-payroll-query.dto';
 import { PayrollEntity } from './entities/payroll.entity';
-import { CHUNK_SIZE } from '@/common/constants/common.constant';
 
 @Injectable()
 export class PayrollsService {
@@ -63,10 +65,14 @@ export class PayrollsService {
         .where('employee.status = :status', {
           status: EEmployeeStatus.WORKING,
         })
+        .andWhere('employee.hireDate <= :endDate', {
+          endDate: monthEnd,
+        })
         .select([
           'employee.id',
           'employee.firstName',
           'employee.lastName',
+          'employee.hireDate',
           'employmentHistories.startDate',
           'employmentHistories.endDate',
           'employmentHistories.basicSalary',
@@ -90,11 +96,11 @@ export class PayrollsService {
       }
 
       const listEmployees = await queryBuilder.getMany();
-      const { weekendDays, totalDays } = getWeekendAndTotalDays(year, month);
+      const { workingDays } = getWorkingDaysAndWeekendDaysInMonth(year, month);
 
       if (listEmployees.length === 0) return [];
 
-      const standardWorkingDays = totalDays - weekendDays.length;
+      const standardWorkingDays = workingDays.length;
 
       return this.dataSource.transaction(async (transactionalEntityManager) => {
         const listPayrolls: any[] = [];
@@ -163,6 +169,22 @@ export class PayrollsService {
             ).toFixed(2),
           );
 
+          let leaveDays = standardWorkingDays - workDays;
+
+          const hireDate = new Date(employee.hireDate);
+
+          if (
+            hireDate.getMonth() === month - 1 &&
+            hireDate.getFullYear() === year
+          ) {
+            const preHireDays = workingDays.reduce((acc, day) => {
+              const date = new Date(day).getDate();
+              return date < hireDate.getDate() ? acc + 1 : acc;
+            }, 0);
+
+            leaveDays = leaveDays - preHireDays;
+          }
+
           const grossSalary = basicSalary + allowanceValue + bonusValue;
 
           const netSalary = Number(
@@ -180,6 +202,7 @@ export class PayrollsService {
             basicSalary,
             standardWorkingDays,
             workDays,
+            leaveDays,
             allowanceAmount: allowanceValue,
             bonusAmount: bonusValue,
             grossSalary,

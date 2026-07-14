@@ -1,6 +1,7 @@
 import {
   ALLOWED_SORT_FIELDS_BENEFIT,
   BENEFIT_SELECT,
+  EBenefitType,
 } from '@/common/constants/benefit.constant';
 import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import { IUser } from '@/common/types/user.type';
@@ -18,6 +19,7 @@ import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
 import { SearchEmployeeBenefitQueryDto } from './dto/search-employee-benefit-query.dto';
 import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
 import { EmployeeBenefitEntity } from './entities/employee-benefit.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class EmployeeBenefitService {
@@ -327,6 +329,44 @@ export class EmployeeBenefitService {
       await this.employeeBenefitRepository.softDelete(benefitId);
 
       return 'Employee benefit removed successfully';
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: error,
+        },
+      );
+    }
+  }
+
+  @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
+  async plusAnnualLeave() {
+    try {
+      const queryBuilder = this.employeeBenefitRepository
+        .createQueryBuilder('employeeBenefit')
+        .select('employeeBenefit.id', 'id')
+        .innerJoin('employeeBenefit.employee', 'employee')
+        .where('employee.status = :status', { status: EEmployeeStatus.WORKING })
+        .andWhere('employeeBenefit.benefitType = :benefitType', {
+          benefitType: EBenefitType.ANNUAL_LEAVE,
+        });
+
+      const employeeBenefits = await queryBuilder.getRawMany();
+      const idsToUpdate = employeeBenefits.map((item) => item.id);
+
+      if (idsToUpdate.length > 0) {
+        await this.employeeBenefitRepository
+          .createQueryBuilder()
+          .update(EmployeeBenefitEntity)
+          .set({ value: () => 'value + 1.00' })
+          .whereInIds(idsToUpdate)
+          .execute();
+      }
+      this.logger.log(`Plus annual leave for ${idsToUpdate.length} employees`);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

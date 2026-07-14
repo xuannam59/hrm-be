@@ -24,7 +24,7 @@ export class CalculatePayrollDto {
   @Max(2100)
   year: number;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({ example: [1] })
   @IsInt({ each: true })
   @IsOptional()
   @Type(() => Number)

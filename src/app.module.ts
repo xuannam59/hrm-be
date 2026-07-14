@@ -12,12 +12,14 @@ import { EmployeeEducationsModule } from './modules/employee-educations/employee
 import { EmployeeInsuranceModule } from './modules/employee-insurance/employee-insurance.module';
 import { EmployeeBenefitModule } from './modules/employee-benefit/employee-benefit.module';
 import { PayrollsModule } from './modules/payrolls/payrolls.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     UsersModule,
     AuthModule,

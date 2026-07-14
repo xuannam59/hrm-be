@@ -7,5 +7,6 @@ export enum ELeaveRequestStatus {
 export enum ELeaveType {
   ANNUAL_LEAVE = 'ANNUAL_LEAVE',
   UNPAID_LEAVE = 'UNPAID_LEAVE',
+  WORK_FROM_HOME = 'WORK_FROM_HOME',
   OTHER = 'OTHER',
 }

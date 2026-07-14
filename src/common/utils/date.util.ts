@@ -103,11 +103,14 @@ export const getNumberOfLeaveDays = (
   return diffDays;
 };
 
-export const getWeekendAndTotalDays = (year: number, month: number) => {
+export const getWorkingDaysAndWeekendDaysInMonth = (
+  year: number,
+  month: number,
+) => {
   const monthStartDate = new Date(year, month - 1, 1);
   const monthEndDate = new Date(year, month, 0);
-  const weekendDays: Date[] = [];
-  const totalDays = monthEndDate.getDate() - monthStartDate.getDate() + 1;
+  const workingDays: string[] = [];
+  const weekendDays: string[] = [];
   for (
     let cursorDate = monthStartDate;
     cursorDate <= monthEndDate;
@@ -119,10 +122,16 @@ export const getWeekendAndTotalDays = (year: number, month: number) => {
       const nextDayDate = new Date(cursorDate);
       nextDayDate.setHours(0, 0, 0, 0);
       nextDayDate.setDate(nextDayDate.getDate() + 1);
-      weekendDays.push(nextDayDate);
+      weekendDays.push(
+        `${nextDayDate.getFullYear()}-${nextDayDate.getMonth() + 1}-${nextDayDate.getDate()}`,
+      );
+    } else {
+      workingDays.push(
+        `${cursorDate.getFullYear()}-${cursorDate.getMonth() + 1}-${cursorDate.getDate()}`,
+      );
     }
   }
-  return { weekendDays, totalDays };
+  return { weekendDays, workingDays };
 };
 
 export const isDateActive = (from: Date, to?: Date, at: Date = new Date()) => {
