@@ -1,5 +1,5 @@
 import { BaseEntity } from '@/common/bases/entity.base';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/constants/attendance.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 

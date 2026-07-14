@@ -7,10 +7,9 @@ import {
   ALLOWED_SORT_FIELDS_PAYROLL,
   PAYROLL_SELECT,
 } from '@/common/constants/payroll.constant';
-import { EBenefitType } from '@/common/types/benefit.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
-import { EInsuranceType } from '@/common/types/insurance.type';
-import { EPayrollStatus } from '@/common/types/payroll.type';
+import { EBenefitType } from '@/common/constants/benefit.constant';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
+import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { IUser } from '@/common/types/user.type';
 import {
   calculateWorkHours,

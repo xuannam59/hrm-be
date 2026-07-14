@@ -1,8 +1,8 @@
 import BaseSearchDto from '@/common/bases/search-dto.base';
-import { EInsuranceType } from '@/common/types/insurance.type';
-import { IsDate, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsDate, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class SearchEmployeeInsuranceQueryDto extends BaseSearchDto {
   @ApiPropertyOptional()

@@ -1,8 +1,8 @@
 import BaseSearchDto from '@/common/bases/search-dto.base';
-import { EBenefitType } from '@/common/types/benefit.type';
+import { EBenefitType } from '@/common/constants/benefit.constant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsDate, IsBoolean, IsOptional, IsInt } from 'class-validator';
+import { IsDate, IsEnum, IsInt, IsOptional } from 'class-validator';
 
 export class SearchEmployeeBenefitQueryDto extends BaseSearchDto {
   @ApiPropertyOptional()

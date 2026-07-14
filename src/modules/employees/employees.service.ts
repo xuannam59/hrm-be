@@ -1,20 +1,35 @@
 import {
+  EBenefitType,
+  EBenefitValueType,
+} from '@/common/constants/benefit.constant';
+import { CHUNK_SIZE } from '@/common/constants/common.constant';
+import {
   ALLOWED_SORT_FIELDS_EMPLOYEE,
+  EEmployeeStatus,
   EImportEmployeeColumns,
   EMPLOYEE_SELECT,
+  EPositionType,
   GENDER_VALUES,
+  POSITION_VALUES,
   STATUS_VALUES,
 } from '@/common/constants/employee.constant';
-import { ERole } from '@/common/constants/role.constant';
-import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
-import { IErrorRow, IPaginationResponse } from '@/common/types/common.type';
 import {
-  EEmployeeStatus,
-  IEmployeeImportRow,
-} from '@/common/types/employee.type';
-import { EUserStatus, IUser } from '@/common/types/user.type';
+  ERole,
+  EUserStatus,
+  ROLE_VALUES,
+} from '@/common/constants/user.constant';
+import { IErrorRow, IPaginationResponse } from '@/common/types/common.type';
+import { IEmployeeImportRow } from '@/common/types/employee.type';
+import { IUser } from '@/common/types/user.type';
 import { hashString } from '@/common/utils/crypto.util';
+import { formatDate } from '@/common/utils/date.util';
+import {
+  convertEmployeeDataToObject,
+  validateEmployeeImport,
+  validateEmployeeImportHeaders,
+} from '@/common/utils/employee.util';
 import { readExcelFile } from '@/common/utils/file.util';
+import { generateRandomString } from '@/common/utils/string.util';
 import { buildDisplayName } from '@/common/utils/user-context.util';
 import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
 import {
@@ -26,7 +41,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, IsNull, Repository } from 'typeorm';
+import { Brackets, DataSource, In, IsNull, Repository } from 'typeorm';
 import { DepartmentEntity } from '../departments/entities/department.entity';
 import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
 import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
@@ -36,14 +51,6 @@ import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
 import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 import UpdateEmployeeDto from './dto/update-employee.dto';
 import { EmployeeEntity } from './entities/employee.entity';
-import {
-  convertEmployeeDataToObject,
-  validateEmployeeImport,
-  validateEmployeeImportHeaders,
-} from '@/common/utils/employee.util';
-import { formatDate } from '@/common/utils/date.util';
-import { CHUNK_SIZE } from '@/common/constants/common.constant';
-import { generateRandomString } from '@/common/utils/string.util';
 
 @Injectable()
 export class EmployeesService {
@@ -251,6 +258,9 @@ export class EmployeesService {
           throw new BadRequestException('Email already exists');
         }
       }
+      const position = createEmployeeDto.account?.role
+        ? EPositionType[createEmployeeDto.account.role]
+        : EPositionType[ERole.EMPLOYEE];
 
       return await this.dataSource.transaction(
         async (transactionalEntityManager) => {
@@ -262,36 +272,23 @@ export class EmployeesService {
             phone: createEmployeeDto.phone,
             address: createEmployeeDto.address,
             hireDate: createEmployeeDto.hireDate,
-            position: createEmployeeDto.position,
+            position: position,
             departmentId: createEmployeeDto.departmentId,
             status: createEmployeeDto.status,
           });
-
-          const insurance = transactionalEntityManager.create(
-            EmployeeBenefitEntity,
-            {
-              employeeId: employee.id,
-              benefitType: EBenefitType.ALLOWANCE,
-              benefitName: 'Trợ cấp',
-              valueType: EBenefitValueType.AMOUNT,
-              value: 800000,
-              effectiveFrom: createEmployeeDto.hireDate,
-            },
-          );
 
           const employmentHistory = transactionalEntityManager.create(
             EmploymentHistoryEntity,
             {
               employeeId: employee.id,
               departmentId: createEmployeeDto.departmentId,
-              position: createEmployeeDto.position,
+              position: position,
               startDate: createEmployeeDto.hireDate,
               basicSalary: createEmployeeDto.basicSalary,
             },
           );
 
           await Promise.all([
-            transactionalEntityManager.save(insurance),
             transactionalEntityManager.save(employmentHistory),
             transactionalEntityManager.save(employee),
           ]);
@@ -607,19 +604,35 @@ export class EmployeesService {
         },
       });
 
-      const departmentIds = departments.map((department) => department.id);
-      const listEmails: string[] = [];
+      const departmentIdSet = new Set(
+        departments.map((department) => department.id),
+      );
 
       const listEmployeeInfo: IEmployeeImportRow[] = [];
+
+      const emails = data
+        .map((e) => e[EImportEmployeeColumns.EMAIL])
+        .filter(Boolean);
+
+      const existingEmailSet = new Set<string>();
+
+      if (emails.length > 0) {
+        const existingEmails = await this.userRepository.find({
+          where: { email: In(emails) },
+          select: { email: true },
+        });
+
+        existingEmails.forEach((e) => existingEmailSet.add(e.email));
+      }
+
+      const seenEmails = new Set<string>();
 
       for (const [rowIndex, employee] of data.entries()) {
         const errorRow = validateEmployeeImport(employee);
 
         if (
           employee[EImportEmployeeColumns.DEPARTMENT_ID] &&
-          !departmentIds.includes(
-            parseInt(employee[EImportEmployeeColumns.DEPARTMENT_ID]),
-          )
+          !departmentIdSet.has(employee[EImportEmployeeColumns.DEPARTMENT_ID])
         ) {
           errorRow.push('Department is not valid');
         }
@@ -627,22 +640,13 @@ export class EmployeesService {
         const email = employee[EImportEmployeeColumns.EMAIL];
 
         if (email) {
-          if (listEmails.includes(email)) {
-            errorRow.push('Email is duplicated');
+          if (seenEmails.has(email)) {
+            errorRow.push('Email is duplicated in the file');
+          } else if (existingEmailSet.has(email)) {
+            errorRow.push('Email already exists in the system');
           }
 
-          const existingEmail = await this.userRepository.findOne({
-            where: { email: email },
-            select: {
-              id: true,
-            },
-          });
-
-          if (existingEmail) {
-            errorRow.push('Email already exists');
-          }
-
-          listEmails.push(email);
+          seenEmails.add(email);
         }
 
         if (errorRow.length > 0) {
@@ -650,6 +654,7 @@ export class EmployeesService {
             rowIndex: rowIndex + 1,
             errors: errorRow,
           });
+          continue;
         }
 
         listEmployeeInfo.push({
@@ -657,7 +662,7 @@ export class EmployeesService {
           lastName: employee[EImportEmployeeColumns.LAST_NAME],
           email: employee[EImportEmployeeColumns.EMAIL],
           departmentId: employee[EImportEmployeeColumns.DEPARTMENT_ID],
-          position: employee[EImportEmployeeColumns.POSITION],
+          role: employee[EImportEmployeeColumns.ROLE],
           basicSalary: employee[EImportEmployeeColumns.BASIC_SALARY],
           hireDate: formatDate(employee[EImportEmployeeColumns.HIRE_DATE]),
           phone: employee[EImportEmployeeColumns.PHONE],
@@ -672,60 +677,85 @@ export class EmployeesService {
         return errorsResult;
       }
 
-      return await this.dataSource.transaction(
-        async (transactionalEntityManager) => {
-          const transactionResult: any[] = [];
-          for (const employee of listEmployeeInfo) {
-            const result = await transactionalEntityManager.save(
-              EmployeeEntity,
-              {
-                firstName: employee.firstName,
-                lastName: employee.lastName,
-                departmentId: Number(employee.departmentId),
-                position: employee.position,
-                hireDate: employee.hireDate,
-                phone: employee.phone?.padStart(10, '0'),
-                address: employee.address,
-                birthday: employee.birthday,
-                gender: GENDER_VALUES[employee.gender || 0],
-                status: STATUS_VALUES[employee.status || 0],
-              },
-            );
+      const imported: any[] = [];
+      const failedChunks: any[] = [];
 
-            await transactionalEntityManager.save(EmploymentHistoryEntity, {
-              employeeId: result.id,
-              departmentId: Number(employee.departmentId),
-              position: employee.position,
-              basicSalary: Number(employee.basicSalary),
-              startDate: employee.hireDate,
-            });
+      for (let i = 0; i < listEmployeeInfo.length; i += CHUNK_SIZE) {
+        try {
+          const chunk = listEmployeeInfo.slice(i, i + CHUNK_SIZE);
 
-            const password = generateRandomString(10);
+          const chunkResult = await this.dataSource.transaction(
+            async (transactionalEntityManager) => {
+              const credentials = await Promise.all(
+                chunk.map(async () => {
+                  const password = generateRandomString(10);
+                  return { password, hashed: await hashString(password) };
+                }),
+              );
 
-            await transactionalEntityManager.save(UserEntity, {
-              email: employee.email,
-              displayName: buildDisplayName(
-                employee.firstName || '',
-                employee.lastName || '',
-              ),
-              password: await hashString(password),
-              role: ERole.EMPLOYEE,
-              status:
-                result.status === EEmployeeStatus.WORKING
-                  ? EUserStatus.ACTIVE
-                  : EUserStatus.INACTIVE,
-              employeeId: result.id,
-            });
+              const employees = await transactionalEntityManager.save(
+                EmployeeEntity,
+                chunk.map((emp) => ({
+                  firstName: emp.firstName,
+                  lastName: emp.lastName,
+                  departmentId: emp.departmentId,
+                  position: POSITION_VALUES[emp.role || 0],
+                  hireDate: emp.hireDate,
+                  phone: emp.phone?.padStart(10, '0'),
+                  address: emp.address,
+                  birthday: emp.birthday,
+                  gender: GENDER_VALUES[emp.gender],
+                  status: STATUS_VALUES[emp.status],
+                })),
+              );
 
-            transactionResult.push({
-              ...result,
-              password: password,
-            });
-          }
+              await transactionalEntityManager.save(
+                EmploymentHistoryEntity,
+                employees.map((emp, idx) => ({
+                  employeeId: emp.id,
+                  departmentId: Number(emp.departmentId),
+                  position: emp.position,
+                  basicSalary: Number(chunk[idx].basicSalary) || 0,
+                  startDate: emp.hireDate,
+                })),
+              );
 
-          return transactionResult;
-        },
-      );
+              await transactionalEntityManager.save(
+                UserEntity,
+                employees.map((emp, idx) => ({
+                  email: chunk[idx].email,
+                  displayName: buildDisplayName(
+                    emp.firstName || '',
+                    emp.lastName || '',
+                  ),
+                  password: credentials[idx].hashed,
+                  role: ERole[ROLE_VALUES[chunk[idx].role]],
+                  status:
+                    emp.status === EEmployeeStatus.WORKING
+                      ? EUserStatus.ACTIVE
+                      : EUserStatus.INACTIVE,
+                  employeeId: emp.id,
+                })),
+              );
+
+              return employees.map((emp, idx) => ({
+                ...emp,
+                password: credentials[idx].password,
+              }));
+            },
+          );
+          imported.push(...chunkResult);
+        } catch (error) {
+          failedChunks.push({
+            from: i + 1,
+            to: i + CHUNK_SIZE,
+            error: error.message,
+          });
+          continue;
+        }
+      }
+
+      return { imported, failedChunks };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

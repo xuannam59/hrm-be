@@ -1,4 +1,4 @@
-import { ELeaveType } from '@/common/types/leave-request.type';
+import { ELeaveType } from '@/common/constants/leave-request.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {

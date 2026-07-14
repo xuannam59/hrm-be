@@ -1,5 +1,5 @@
 import { BaseEntity } from '@/common/bases/entity.base';
-import { EInsuranceType } from '@/common/types/insurance.type';
+import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 

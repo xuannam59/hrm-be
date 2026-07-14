@@ -1,28 +1,28 @@
+import { Roles } from '@/common/decorators/roles.decorator';
+import { User } from '@/common/decorators/user.decorator';
+import { ERole } from '@/common/constants/user.constant';
+import { type IUser } from '@/common/types/user.type';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseIntPipe,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { LeaveRequestsService } from './leave-requests.service';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
-import {
-  UpdateMyLeaveRequestDto,
-  UpdateLeaveRequestStatusDto,
-} from './dto/update-leave-request.dto';
-import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
 import {
   SearchLeaveQueryDto,
   SearchMyLeaveQueryDto,
 } from './dto/search-leave-query.dto';
+import {
+  UpdateLeaveRequestStatusDto,
+  UpdateMyLeaveRequestDto,
+} from './dto/update-leave-request.dto';
+import { LeaveRequestsService } from './leave-requests.service';
 
 @Controller('leave-requests')
 export class LeaveRequestsController {

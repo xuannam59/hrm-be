@@ -1,22 +1,22 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { EmployeeEducationsService } from './employee-educations.service';
-import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto';
-import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
-import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
-import type { IUser } from '@/common/types/user.type';
-import { User } from '@/common/decorators/user.decorator';
+import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
+import { User } from '@/common/decorators/user.decorator';
+import { type IUser } from '@/common/types/user.type';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto';
+import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
+import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
+import { EmployeeEducationsService } from './employee-educations.service';
 
 @Controller('employee-educations')
 export class EmployeeEducationsController {

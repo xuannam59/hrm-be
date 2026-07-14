@@ -1,3 +1,8 @@
+import {
+  EEmployeeStatus,
+  EGenderType,
+} from '@/common/constants/employee.constant';
+import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -11,9 +16,6 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { EGenderType } from '@/common/types/employee.type';
-import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import { EEmployeeStatus } from '@/common/types/employee.type';
 
 class CreateEmployeeDto {
   @ApiProperty({ example: 'John' })
@@ -54,12 +56,6 @@ class CreateEmployeeDto {
   @IsDate()
   @IsNotEmpty()
   hireDate: Date;
-
-  @ApiProperty({ example: 'Software Engineer' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  position: string;
 
   @ApiProperty({ example: 1 })
   @Type(() => Number)

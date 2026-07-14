@@ -1,3 +1,5 @@
+import { ERole } from './user.constant';
+
 export const EMPLOYEE_SELECT = [
   'employee.id',
   'employee.firstName',
@@ -42,7 +44,7 @@ export enum EImportEmployeeColumns {
   LAST_NAME = 'lastName',
   EMAIL = 'email',
   DEPARTMENT_ID = 'departmentId',
-  POSITION = 'position',
+  ROLE = 'role',
   HIRE_DATE = 'hireDate',
   PHONE = 'phone',
   ADDRESS = 'address',
@@ -52,5 +54,32 @@ export enum EImportEmployeeColumns {
   STATUS = 'status',
 }
 
-export const GENDER_VALUES = ['OTHER', 'MALE', 'FEMALE'];
-export const STATUS_VALUES = ['RETIRED', 'WORKING'];
+export enum EGenderType {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+  OTHER = 'OTHER',
+}
+
+export const GENDER_VALUES: EGenderType[] = [
+  EGenderType.OTHER,
+  EGenderType.MALE,
+  EGenderType.FEMALE,
+];
+
+export enum EEmployeeStatus {
+  WORKING = 'WORKING',
+  RETIRED = 'RETIRED',
+}
+
+export const STATUS_VALUES: EEmployeeStatus[] = [
+  EEmployeeStatus.RETIRED,
+  EEmployeeStatus.WORKING,
+];
+
+export const EPositionType = {
+  [ERole.EMPLOYEE]: 'Nhân viên',
+  [ERole.MANAGER]: 'Trưởng phòng',
+  [ERole.ADMIN]: 'Giám đốc',
+};
+
+export const POSITION_VALUES = ['Nhân viên', 'Trưởng phòng', 'Giám đốc'];

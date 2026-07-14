@@ -1,4 +1,6 @@
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDate,
   IsEnum,
@@ -8,8 +10,6 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { EEmployeeStatus } from '@/common/types/employee.type';
-import { Transform, Type } from 'class-transformer';
 
 class UpdateEmployeeDto {
   @ApiProperty({ example: '2026-01-01' })

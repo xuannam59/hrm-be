@@ -1,5 +1,7 @@
-import { TIME_FORMAT } from '@/common/constants/attendance.constant';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
+import {
+  EAttendanceStatus,
+  TIME_FORMAT,
+} from '@/common/constants/attendance.constant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
 

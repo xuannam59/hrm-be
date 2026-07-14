@@ -1,8 +1,10 @@
-import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
+import {
+  EBenefitType,
+  EBenefitValueType,
+} from '@/common/constants/benefit.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,

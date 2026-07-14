@@ -1,3 +1,8 @@
+import { ERole } from '@/common/constants/user.constant';
+import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { User } from '@/common/decorators/user.decorator';
+import { type IUser } from '@/common/types/user.type';
 import {
   Body,
   Controller,
@@ -9,11 +14,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
-import { ResponseMessage } from '@/common/decorators/public.decorator';
-import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
 import {
   SearchAttendanceQueryDto,
   SearchMyAttendanceQueryDto,

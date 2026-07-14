@@ -3,15 +3,16 @@ import {
   START_WORK_TIME,
   WORK_HOURS,
 } from '@/common/constants/attendance.constant';
-import { ERole } from '@/common/constants/role.constant';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/constants/attendance.constant';
+import { EBenefitType } from '@/common/constants/benefit.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import {
   ELeaveRequestStatus,
   ELeaveType,
-} from '@/common/types/leave-request.type';
-import { EUserStatus, IUser } from '@/common/types/user.type';
+} from '@/common/constants/leave-request.constant';
+import { ERole, EUserStatus } from '@/common/constants/user.constant';
+import { IUser } from '@/common/types/user.type';
 import {
   getEarliestLeaveRequestDate,
   getNumberOfLeaveDays,
@@ -34,6 +35,7 @@ import {
   Repository,
 } from 'typeorm';
 import { AttendanceEntity } from '../attendance/entities/attendance.entity';
+import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import {
@@ -45,8 +47,6 @@ import {
   UpdateMyLeaveRequestDto,
 } from './dto/update-leave-request.dto';
 import { LeaveRequestEntity } from './entities/leave-request.entity';
-import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
-import { EBenefitType } from '@/common/types/benefit.type';
 
 @Injectable()
 export class LeaveRequestsService {

@@ -2,7 +2,7 @@ import {
   ALLOWED_SORT_FIELDS_BENEFIT,
   BENEFIT_SELECT,
 } from '@/common/constants/benefit.constant';
-import { EEmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import { IUser } from '@/common/types/user.type';
 import {
   BadRequestException,

@@ -1,3 +1,9 @@
+export enum EPayrollStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+}
+
 export const PAYROLL_SELECT = [
   'payroll.id',
   'payroll.payrollMonth',

@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { EUserStatus } from '@/common/types/user.type';
+import { EUserStatus } from '@/common/constants/user.constant';
 import SearchDtoBase from '@/common/bases/search-dto.base';
-import { ERole } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/user.constant';
 
 export class SearchUserQueryDto extends SearchDtoBase {
   @ApiPropertyOptional({ example: 'john' })

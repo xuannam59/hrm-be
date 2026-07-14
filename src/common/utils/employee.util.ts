@@ -3,6 +3,7 @@ import {
   GENDER_VALUES,
   STATUS_VALUES,
 } from '../constants/employee.constant';
+import { ROLE_VALUES } from '../constants/user.constant';
 import { IEmployeeImportRow } from '../types/employee.type';
 
 export const validateEmployeeImportHeaders = (headers: string[]) => {
@@ -12,15 +13,6 @@ export const validateEmployeeImportHeaders = (headers: string[]) => {
     }
   }
   return true;
-};
-
-export const convertEmployeeData = (data: string[][]) => {
-  return data.map((row) => {
-    return {
-      [EImportEmployeeColumns.FIRST_NAME]: row[0],
-      [EImportEmployeeColumns.LAST_NAME]: row[1],
-    };
-  });
 };
 
 export const validateEmployeeImport = (employee: IEmployeeImportRow) => {
@@ -43,8 +35,14 @@ export const validateEmployeeImport = (employee: IEmployeeImportRow) => {
     errors.push('DepartmentID is required');
   }
 
-  if (!employee[EImportEmployeeColumns.POSITION]) {
-    errors.push('Position is required');
+  console.log(employee[EImportEmployeeColumns.ROLE]);
+  if (
+    !employee[EImportEmployeeColumns.ROLE] &&
+    employee[EImportEmployeeColumns.ROLE] != 0
+  ) {
+    errors.push('Role is required');
+  } else if (!ROLE_VALUES[employee[EImportEmployeeColumns.ROLE]]) {
+    errors.push('Role has a value of 0, 1 or 2');
   }
 
   if (!employee[EImportEmployeeColumns.HIRE_DATE]) {
@@ -75,6 +73,13 @@ export const validateEmployeeImport = (employee: IEmployeeImportRow) => {
     !GENDER_VALUES[employee[EImportEmployeeColumns.GENDER]]
   ) {
     errors.push('Gender has a value of 0, 1 or 2');
+  }
+
+  if (
+    employee[EImportEmployeeColumns.BASIC_SALARY] &&
+    Number.isNaN(Number(employee[EImportEmployeeColumns.BASIC_SALARY]))
+  ) {
+    errors.push('Basic salary is not a number');
   }
 
   return errors;
@@ -111,15 +116,15 @@ export const convertEmployeeDataToObject = (
       [EImportEmployeeColumns.FIRST_NAME]: row[0] || undefined,
       [EImportEmployeeColumns.LAST_NAME]: row[1] || undefined,
       [EImportEmployeeColumns.EMAIL]: row[2] || undefined,
-      [EImportEmployeeColumns.DEPARTMENT_ID]: row[3] || undefined,
-      [EImportEmployeeColumns.POSITION]: row[4] || undefined,
+      [EImportEmployeeColumns.DEPARTMENT_ID]: Number(row[3]) || undefined,
+      [EImportEmployeeColumns.ROLE]: Number(row[4]) || 0,
       [EImportEmployeeColumns.HIRE_DATE]: row[5] || undefined,
       [EImportEmployeeColumns.PHONE]: row[6] || undefined,
       [EImportEmployeeColumns.ADDRESS]: row[7] || undefined,
-      [EImportEmployeeColumns.GENDER]: row[8] || undefined,
+      [EImportEmployeeColumns.GENDER]: Number(row[8]) || 0,
       [EImportEmployeeColumns.BIRTHDAY]: row[9] || undefined,
-      [EImportEmployeeColumns.BASIC_SALARY]: row[10] || undefined,
-      [EImportEmployeeColumns.STATUS]: row[11] || undefined,
+      [EImportEmployeeColumns.BASIC_SALARY]: Number(row[10]) || 0,
+      [EImportEmployeeColumns.STATUS]: Number(row[11]) || 0,
     };
   });
 };

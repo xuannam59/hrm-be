@@ -1,8 +1,7 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { EUserStatus } from '@/common/types/user.type';
-import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { BaseEntity } from '@/common/bases/entity.base';
-import { ERole } from '@/common/constants/role.constant';
+import { ERole, EUserStatus } from '@/common/constants/user.constant';
+import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
 @Entity('User')
 export class UserEntity extends BaseEntity {

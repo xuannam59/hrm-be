@@ -1,5 +1,5 @@
 import BaseSearchDto from '@/common/bases/search-dto.base';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
+import { EAttendanceStatus } from '@/common/constants/attendance.constant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {

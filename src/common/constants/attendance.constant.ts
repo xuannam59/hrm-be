@@ -9,3 +9,15 @@ export const BREAK_TIME_END = '13:00:00';
 export const WORK_HOURS = 8;
 
 export const TIME_FORMAT = /^[0-9]{2}:[0-9]{2}:[0-9]{2}$/;
+
+export enum EAttendanceStatus {
+  PRESENT = 'PRESENT',
+  ABSENT = 'ABSENT',
+  LATE = 'LATE',
+  WORK_FROM_HOME = 'WORK_FROM_HOME',
+}
+
+export enum EAttendanceType {
+  IN = 'IN',
+  OUT = 'OUT',
+}

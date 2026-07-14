@@ -2,7 +2,7 @@ import BaseSearchDto from '@/common/bases/search-dto.base';
 import {
   ELeaveRequestStatus,
   ELeaveType,
-} from '@/common/types/leave-request.type';
+} from '@/common/constants/leave-request.constant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsInt, IsOptional } from 'class-validator';

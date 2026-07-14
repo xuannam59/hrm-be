@@ -2,6 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Req,
   Res,
@@ -17,6 +20,8 @@ import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Public } from '@/common/decorators/public.decorator';
 import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { ERole } from '@/common/constants/user.constant';
 
 @Controller('auth')
 export class AuthController {
@@ -53,11 +58,17 @@ export class AuthController {
     return this.authService.logout(res);
   }
 
-  @Post('change-password')
+  @Patch('change-password')
   async changePassword(
     @User() user: IUser,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user, changePasswordDto);
+  }
+
+  @Patch('reset-password/:id')
+  @Roles(ERole.ADMIN)
+  async resetPassword(@Param('id', ParseIntPipe) userId: number) {
+    return this.authService.resetPassword(userId);
   }
 }

@@ -2,7 +2,7 @@ import { BaseEntity } from '@/common/bases/entity.base';
 import {
   ELeaveRequestStatus,
   ELeaveType,
-} from '@/common/types/leave-request.type';
+} from '@/common/constants/leave-request.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 

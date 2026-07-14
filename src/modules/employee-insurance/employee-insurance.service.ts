@@ -2,7 +2,7 @@ import {
   ALLOWED_SORT_FIELDS_INSURANCE,
   INSURANCE_SELECT,
 } from '@/common/constants/insurance.contant';
-import { EEmployeeStatus } from '@/common/types/employee.type';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import {
   BadRequestException,
   HttpException,

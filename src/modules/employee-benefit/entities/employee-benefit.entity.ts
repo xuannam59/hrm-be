@@ -1,5 +1,8 @@
 import { BaseEntity } from '@/common/bases/entity.base';
-import { EBenefitType, EBenefitValueType } from '@/common/types/benefit.type';
+import {
+  EBenefitType,
+  EBenefitValueType,
+} from '@/common/constants/benefit.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 

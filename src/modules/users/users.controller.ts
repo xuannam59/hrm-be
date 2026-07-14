@@ -1,24 +1,20 @@
+import { ERole } from '@/common/constants/user.constant';
+import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import type { IPaginationResponse } from '@/common/types/common.type';
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseIntPipe,
   Patch,
-  Post,
   Query,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { ERole } from '@/common/constants/role.constant';
-import { ResponseMessage } from '@/common/decorators/public.decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { Body } from '@nestjs/common';
-import CreateUserDto from './dto/create-user.dto';
-import UpdateUserDto from './dto/update-user.dto';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
-import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
+import UpdateUserDto from './dto/update-user.dto';
 import type { UserEntity } from './entities/user.entity';
-import type { IPaginationResponse } from '@/common/types/common.type';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {

@@ -1,3 +1,16 @@
+import { BaseEntity } from '@/common/bases/entity.base';
+import {
+  EEmployeeStatus,
+  EGenderType,
+} from '@/common/constants/employee.constant';
+import { AttendanceEntity } from '@/modules/attendance/entities/attendance.entity';
+import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
+import { EmployeeBenefitEntity } from '@/modules/employee-benefit/entities/employee-benefit.entity';
+import { EmployeeEducationEntity } from '@/modules/employee-educations/entities/employee-education.entity';
+import { EmployeeInsuranceEntity } from '@/modules/employee-insurance/entities/employee-insurance.entity';
+import { LeaveRequestEntity } from '@/modules/leave-requests/entities/leave-request.entity';
+import { PayrollEntity } from '@/modules/payrolls/entities/payroll.entity';
+import { UserEntity } from '@/modules/users/entities/user.entity';
 import {
   Column,
   Entity,
@@ -6,17 +19,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { EEmployeeStatus, EGenderType } from '@/common/types/employee.type';
-import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
-import { UserEntity } from '@/modules/users/entities/user.entity';
-import { BaseEntity } from '@/common/bases/entity.base';
-import { AttendanceEntity } from '@/modules/attendance/entities/attendance.entity';
 import { EmploymentHistoryEntity } from '../../employee-histories/entities/employment-history.entity';
-import { LeaveRequestEntity } from '@/modules/leave-requests/entities/leave-request.entity';
-import { EmployeeEducationEntity } from '@/modules/employee-educations/entities/employee-education.entity';
-import { EmployeeBenefitEntity } from '@/modules/employee-benefit/entities/employee-benefit.entity';
-import { EmployeeInsuranceEntity } from '@/modules/employee-insurance/entities/employee-insurance.entity';
-import { PayrollEntity } from '@/modules/payrolls/entities/payroll.entity';
 
 @Entity('Employee')
 export class EmployeeEntity extends BaseEntity {

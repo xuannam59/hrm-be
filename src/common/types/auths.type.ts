@@ -1,4 +1,3 @@
-import { ERole } from '../constants/role.constant';
 import { type IUser } from './user.type';
 
 export interface ILoginResponse {

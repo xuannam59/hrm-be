@@ -1,4 +1,4 @@
-import { ERole } from '@/common/constants/role.constant';
+import { ERole } from '@/common/constants/user.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,

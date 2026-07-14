@@ -1,4 +1,3 @@
-import { ERole } from '@/common/constants/role.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
 import { IUser } from '@/common/types/user.type';
 import {

@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { ESortOrder } from '../types/common.type';
+import { ESortOrder } from '../constants/common.constant';
 
 class BaseSearchDto {
   @ApiPropertyOptional({ example: 1 })

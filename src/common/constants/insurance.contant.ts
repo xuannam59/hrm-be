@@ -1,4 +1,7 @@
-import { EInsuranceType } from '../types/insurance.type';
+export enum EInsuranceType {
+  SOCIAL = 'SOCIAL',
+  HEALTH = 'HEALTH',
+}
 
 export const INSURANCE_SELECT = [
   'employeeInsurance.id',

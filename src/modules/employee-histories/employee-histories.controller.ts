@@ -1,22 +1,22 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { EmployeeHistoriesService } from './employee-histories.service';
-import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
-import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
+import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
-import SearchHistoryQueryDto from './dto/search-history-query.dto';
 import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
+import { type IUser } from '@/common/types/user.type';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
+import SearchHistoryQueryDto from './dto/search-history-query.dto';
+import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
+import { EmployeeHistoriesService } from './employee-histories.service';
 
 @Controller('employee-histories')
 export class EmployeeHistoriesController {

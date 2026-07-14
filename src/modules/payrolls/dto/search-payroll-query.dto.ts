@@ -1,5 +1,5 @@
 import BaseSearchDto from '@/common/bases/search-dto.base';
-import { EPayrollStatus } from '@/common/types/payroll.type';
+import { EPayrollStatus } from '@/common/constants/payroll.constant';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsInt, IsOptional } from 'class-validator';

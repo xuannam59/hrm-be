@@ -1,4 +1,8 @@
-import { ERole } from '@/common/constants/role.constant';
+import {
+  ALLOWED_SORT_FIELDS_EDUCATION,
+  EDUCATION_SELECT,
+} from '@/common/constants/education.constant';
+import { ERole } from '@/common/constants/user.constant';
 import { IUser } from '@/common/types/user.type';
 import {
   ForbiddenException,
@@ -14,10 +18,6 @@ import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto'
 import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
 import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
 import { EmployeeEducationEntity } from './entities/employee-education.entity';
-import {
-  ALLOWED_SORT_FIELDS_EDUCATION,
-  EDUCATION_SELECT,
-} from '@/common/constants/education.constant';
 
 @Injectable()
 export class EmployeeEducationsService {

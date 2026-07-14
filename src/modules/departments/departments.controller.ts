@@ -1,21 +1,21 @@
+import { ERole } from '@/common/constants/user.constant';
+import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  Query,
+  Get,
+  Param,
   ParseIntPipe,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
-import { UpdateDepartmentDto } from './dto/update-department.dto';
-import { ResponseMessage } from '@/common/decorators/public.decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
+import { UpdateDepartmentDto } from './dto/update-department.dto';
 
 @Controller('departments')
 export class DepartmentsController {

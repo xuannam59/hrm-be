@@ -1,4 +1,4 @@
-import { EGenderType } from '@/common/types/employee.type';
+import { EGenderType } from '@/common/constants/employee.constant';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {

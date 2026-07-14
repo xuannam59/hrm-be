@@ -26,3 +26,16 @@ export const ALLOWED_SORT_FIELDS_BENEFIT = [
   'effectiveTo',
   'createdAt',
 ];
+
+export enum EBenefitType {
+  ANNUAL_LEAVE = 'ANNUAL_LEAVE',
+  ALLOWANCE = 'ALLOWANCE',
+  BONUS = 'BONUS',
+  OTHER = 'OTHER',
+}
+
+export enum EBenefitValueType {
+  AMOUNT = 'AMOUNT',
+  DAY = 'DAY',
+  PERCENT = 'PERCENT',
+}

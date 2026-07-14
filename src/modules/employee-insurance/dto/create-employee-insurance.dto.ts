@@ -1,4 +1,4 @@
-import { EInsuranceType } from '@/common/types/insurance.type';
+import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {

@@ -1,3 +1,7 @@
+import { ERole, EUserStatus } from '@/common/constants/user.constant';
+import type { IPayloadToken } from '@/common/types/auths.type';
+import { type IUser } from '@/common/types/user.type';
+import { compareHashedString, hashString } from '@/common/utils/crypto.util';
 import {
   BadRequestException,
   HttpException,
@@ -5,20 +9,17 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { EUserStatus } from '@/common/types/user.type';
-import { compareHashedString, hashString } from '@/common/utils/crypto.util';
-import type { IPayloadToken } from '@/common/types/auths.type';
-import { type IUser } from '@/common/types/user.type';
-import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import ms, { type StringValue } from 'ms';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { UsersService } from '../users/users.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
 import { DiscoveryService } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Request, Response } from 'express';
+import ms, { type StringValue } from 'ms';
+import { Not, Repository } from 'typeorm';
+import { UserEntity } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { generateRandomString } from '@/common/utils/string.util';
 
 @Injectable()
 export class AuthService {
@@ -245,6 +246,38 @@ export class AuthService {
     }
   }
 
+  async resetPassword(userId: number) {
+    try {
+      const userInfo = await this.userRepository.findOne({
+        where: {
+          id: userId,
+          status: EUserStatus.ACTIVE,
+          role: Not(ERole.ADMIN),
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+
+      if (!userInfo) {
+        throw new BadRequestException('User not found');
+      }
+
+      const password = generateRandomString(10);
+      const hashedPassword = await hashString(password);
+      await this.userRepository.update(userInfo.id, {
+        password: hashedPassword,
+      });
+
+      this.logger.log(`User ${userInfo.email} reset password successfully`);
+      return { password };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+    }
+  }
   private createRefreshToken(payloadToken: IPayloadToken) {
     return this.jwtService.sign(payloadToken, {
       expiresIn: this.configService.get('JWT_REFRESH_EXPIRES', '7d'),

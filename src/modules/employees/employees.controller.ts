@@ -1,12 +1,20 @@
 import {
+  ALLOWED_FILE_EMPLOYEES_IMPORT,
+  MAX_FILE_SIZE,
+} from '@/common/constants/file.constant';
+import { ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { User } from '@/common/decorators/user.decorator';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { ERole } from '@/common/constants/user.constant';
+import { type IUser } from '@/common/types/user.type';
+import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
+import {
   Body,
   Controller,
-  FileTypeValidator,
   Get,
   HttpStatus,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   ParseFilePipeBuilder,
   ParseIntPipe,
   Patch,
@@ -15,25 +23,14 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { EmployeesService } from './employees.service';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
-import { Public, ResponseMessage } from '@/common/decorators/public.decorator';
-import type { IUser } from '@/common/types/user.type';
-import { User } from '@/common/decorators/user.decorator';
-import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
-import CreateEmployeeDto from './dto/create-employee.dto';
-import ProvisionAccountDto from '@/modules/users/dto/provision-account.dto';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { EmployeeEntity } from './entities/employee.entity';
-import UpdateEmployeeDto from './dto/update-employee.dto';
-import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ALLOWED_FILE_EMPLOYEES_IMPORT,
-  MAX_FILE_SIZE,
-} from '@/common/constants/file.constant';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import CreateEmployeeDto from './dto/create-employee.dto';
+import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
+import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
+import UpdateEmployeeDto from './dto/update-employee.dto';
+import { EmployeesService } from './employees.service';
+import { EmployeeEntity } from './entities/employee.entity';
 
 @Controller('employees')
 export class EmployeesController {
@@ -101,7 +98,6 @@ export class EmployeesController {
 
   @Post('import')
   @Roles(ERole.ADMIN)
-  @Public()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

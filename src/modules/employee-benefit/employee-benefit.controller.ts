@@ -1,22 +1,22 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { EmployeeBenefitService } from './employee-benefit.service';
-import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
-import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
+import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/role.constant';
 import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
+import { type IUser } from '@/common/types/user.type';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
 import { SearchEmployeeBenefitQueryDto } from './dto/search-employee-benefit-query.dto';
+import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
+import { EmployeeBenefitService } from './employee-benefit.service';
 
 @Controller('employee-benefit')
 export class EmployeeBenefitController {

@@ -1,8 +1,10 @@
-import { START_WORK_TIME } from '@/common/constants/attendance.constant';
-import { ERole } from '@/common/constants/role.constant';
-import { EAttendanceStatus } from '@/common/types/attendance.type';
+import {
+  EAttendanceStatus,
+  START_WORK_TIME,
+} from '@/common/constants/attendance.constant';
+import { EEmployeeStatus } from '@/common/constants/employee.constant';
+import { ERole } from '@/common/constants/user.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
-import { EEmployeeStatus } from '@/common/types/employee.type';
 import { IUser } from '@/common/types/user.type';
 import {
   calculateWorkHours,

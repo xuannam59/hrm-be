@@ -1,7 +1,7 @@
-import { ERole } from '@/common/constants/role.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { User } from '@/common/decorators/user.decorator';
-import type { IUser } from '@/common/types/user.type';
+import { ERole } from '@/common/constants/user.constant';
+import { type IUser } from '@/common/types/user.type';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CalculatePayrollDto } from './dto/calculate-payroll.dto';
 import { SearchPayrollQueryDto } from './dto/search-payroll-query.dto';

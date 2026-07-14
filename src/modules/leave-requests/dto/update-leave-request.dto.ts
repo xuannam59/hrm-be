@@ -1,7 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateLeaveRequestDto } from './create-leave-request.dto';
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { ELeaveRequestStatus } from '@/common/types/leave-request.type';
+import { ELeaveRequestStatus } from '@/common/constants/leave-request.constant';
 
 export class UpdateLeaveRequestStatusDto {
   @ApiProperty({
