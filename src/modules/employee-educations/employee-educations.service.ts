@@ -99,17 +99,21 @@ export class EmployeeEducationsService {
       }
 
       if (school) {
-        queryBuilder.andWhere('employeeEducation.school = :school', { school });
+        queryBuilder.andWhere('employeeEducation.school LIKE :school', {
+          school: `%${school}%`,
+        });
       }
 
       if (degree) {
-        queryBuilder.andWhere('employeeEducation.degree = :degree', { degree });
+        queryBuilder.andWhere('employeeEducation.degree LIKE :degree', {
+          degree: `%${degree}%`,
+        });
       }
 
       if (fieldOfStudy) {
         queryBuilder.andWhere(
-          'employeeEducation.fieldOfStudy = :fieldOfStudy',
-          { fieldOfStudy },
+          'employeeEducation.fieldOfStudy LIKE :fieldOfStudy',
+          { fieldOfStudy: `%${fieldOfStudy}%` },
         );
       }
 

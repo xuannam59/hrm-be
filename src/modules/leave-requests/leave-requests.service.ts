@@ -201,6 +201,7 @@ export class LeaveRequestsService {
       const queryBuilder = this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
         .leftJoinAndSelect('leaveRequest.employee', 'employee')
+        .leftJoinAndSelect('leaveRequest.approver', 'approver')
         .where('leaveRequest.approverId = :approverId', {
           approverId: actor.employee.id,
         })
@@ -220,6 +221,9 @@ export class LeaveRequestsService {
           'employee.id',
           'employee.firstName',
           'employee.lastName',
+          'approver.id',
+          'approver.firstName',
+          'approver.lastName',
         ]);
 
       if (from) {
@@ -536,17 +540,46 @@ export class LeaveRequestsService {
           const m = requestStart.getMonth();
           const d = requestStart.getDate();
 
-          await transactionalEntityManager.insert(
-            AttendanceEntity,
-            Array.from({ length: leaveRequest.numberOfDays }, (_, i) => ({
-              employeeId: leaveRequest.employeeId,
-              workDate: new Date(y, m, d + i),
-              checkIn: START_WORK_TIME,
-              checkOut: END_WORK_TIME,
-              workHours: WORK_HOURS,
-              status: attendanceStatus,
-            })),
+          const workDates = Array.from(
+            { length: leaveRequest.numberOfDays },
+            (_, i) => new Date(y, m, d + i),
           );
+
+          for (const workDate of workDates) {
+            const existingAttendance = await transactionalEntityManager.findOne(
+              AttendanceEntity,
+              {
+                where: {
+                  employeeId: leaveRequest.employeeId,
+                  workDate,
+                },
+                select: {
+                  id: true,
+                },
+              },
+            );
+
+            if (!existingAttendance) {
+              await transactionalEntityManager.insert(AttendanceEntity, {
+                employeeId: leaveRequest.employeeId,
+                workDate,
+                checkIn: START_WORK_TIME,
+                checkOut: END_WORK_TIME,
+                workHours: WORK_HOURS,
+                status: attendanceStatus,
+              });
+            } else {
+              await transactionalEntityManager.update(
+                AttendanceEntity,
+                existingAttendance.id,
+                {
+                  checkIn: START_WORK_TIME,
+                  checkOut: END_WORK_TIME,
+                  workHours: WORK_HOURS,
+                },
+              );
+            }
+          }
         }
 
         await transactionalEntityManager.update(LeaveRequestEntity, id, {

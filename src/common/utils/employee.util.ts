@@ -35,7 +35,6 @@ export const validateEmployeeImport = (employee: IEmployeeImportRow) => {
     errors.push('DepartmentID is required');
   }
 
-  console.log(employee[EImportEmployeeColumns.ROLE]);
   if (
     !employee[EImportEmployeeColumns.ROLE] &&
     employee[EImportEmployeeColumns.ROLE] != 0

@@ -110,8 +110,8 @@ export class EmployeeInsuranceService {
 
       if (insuranceNumber) {
         queryBuilder.andWhere(
-          'employeeInsurance.insuranceNumber = :insuranceNumber',
-          { insuranceNumber },
+          'employeeInsurance.insuranceNumber LIKE :insuranceNumber',
+          { insuranceNumber: `%${insuranceNumber}%` },
         );
       }
 
