@@ -60,7 +60,7 @@ export class EmployeeHistoriesService {
         `Employment history created successfully for employee ${employee.id}`,
       );
       return savedEmploymentHistory;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -106,10 +106,10 @@ export class EmployeeHistoriesService {
           'employmentHistory.position',
           'employmentHistory.startDate',
           'employmentHistory.endDate',
+          'employmentHistory.basicSalary',
           'employmentHistory.createdAt',
           'employmentHistory.updatedAt',
           'employee.id',
-          'employee.employeeCode',
           'employee.position',
           'employee.firstName',
           'employee.lastName',
@@ -175,7 +175,7 @@ export class EmployeeHistoriesService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -201,8 +201,8 @@ export class EmployeeHistoriesService {
           'employmentHistory.position',
           'employmentHistory.startDate',
           'employmentHistory.endDate',
+          'employmentHistory.basicSalary',
           'employee.id',
-          'employee.employeeCode',
           'employee.firstName',
           'employee.lastName',
           'employee.position',
@@ -217,7 +217,7 @@ export class EmployeeHistoriesService {
       }
 
       return employmentHistory;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -235,7 +235,7 @@ export class EmployeeHistoriesService {
         where: { employeeId: actor.employee.id },
       });
       return employmentHistories;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -281,7 +281,7 @@ export class EmployeeHistoriesService {
         `Employment history updated successfully for employee ${employmentHistory.employeeId}`,
       );
       return 'Employment history updated successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -307,7 +307,7 @@ export class EmployeeHistoriesService {
         `Employment history deleted successfully for employee ${employmentHistory.employeeId}`,
       );
       return 'Employment history deleted successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

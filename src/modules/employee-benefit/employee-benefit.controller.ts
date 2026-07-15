@@ -38,15 +38,15 @@ export class EmployeeBenefitController {
     return this.employeeBenefitService.findAll(searchEmployeeBenefitQueryDto);
   }
 
+  @Get('me')
+  findMy(@User() actor: IUser) {
+    return this.employeeBenefitService.findMy(actor);
+  }
+
   @Get(':id')
   @Roles(ERole.ADMIN)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.employeeBenefitService.findOne(id);
-  }
-
-  @Get('me')
-  findMy(@User() actor: IUser) {
-    return this.employeeBenefitService.findMy(actor);
   }
 
   @Patch(':id')

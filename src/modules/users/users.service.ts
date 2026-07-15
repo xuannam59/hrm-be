@@ -77,7 +77,7 @@ export class UsersService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -151,7 +151,7 @@ export class UsersService {
   //     const newUser = await this.userRepository.save(user);
   //     this.logger.log(`User ${newUser.email} created successfully`);
   //     return newUser;
-  //   } catch (error) {
+  //   } catch (error : any) {
   //     if (error instanceof HttpException) {
   //       throw error;
   //     }
@@ -178,7 +178,6 @@ export class UsersService {
           'user.createdAt',
           'user.role',
           'employee.id',
-          'employee.employeeCode',
           'employee.firstName',
           'employee.lastName',
           'employee.avatar',
@@ -189,7 +188,7 @@ export class UsersService {
         throw new NotFoundException('User not found');
       }
       return userInfo;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -245,7 +244,7 @@ export class UsersService {
       const updatedUser = await this.userRepository.save(user);
       this.logger.log(`User ${updatedUser.email} updated successfully`);
       return 'Update user successful';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -277,7 +276,7 @@ export class UsersService {
         },
       });
       return user;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

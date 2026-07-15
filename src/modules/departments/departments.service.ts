@@ -68,7 +68,7 @@ export class DepartmentsService {
         const department = await this.departmentRepository.save(newDepartment);
         this.logger.log(`Department ${department.name} created successfully `);
         return department;
-      } catch (error) {
+      } catch (error: any) {
         if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
           throw new BadRequestException(
             'Manager already assigned to another department',
@@ -76,7 +76,7 @@ export class DepartmentsService {
         }
         throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -131,7 +131,7 @@ export class DepartmentsService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -192,7 +192,7 @@ export class DepartmentsService {
           `Department ${departmentInfo.name} updated successfully`,
         );
         return 'Update department successful';
-      } catch (error) {
+      } catch (error: any) {
         if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
           throw new BadRequestException(
             'Manager already assigned to another department',
@@ -200,7 +200,7 @@ export class DepartmentsService {
         }
         throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -226,7 +226,7 @@ export class DepartmentsService {
 
       this.logger.log(`Department ${departmentInfo.name} deleted successfully`);
       return 'Delete department successful';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

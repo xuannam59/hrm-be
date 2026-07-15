@@ -165,7 +165,7 @@ export class LeaveRequestsService {
         await this.leaveRequestRepository.save(leaveRequest);
 
       return savedLeaveRequest;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -262,7 +262,7 @@ export class LeaveRequestsService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -287,6 +287,7 @@ export class LeaveRequestsService {
 
       const queryBuilder = this.leaveRequestRepository
         .createQueryBuilder('leaveRequest')
+        .leftJoinAndSelect('leaveRequest.approver', 'approver')
         .where('leaveRequest.employeeId = :employeeId', {
           employeeId: actor.employee.id,
         })
@@ -301,8 +302,13 @@ export class LeaveRequestsService {
           'leaveRequest.leaveType',
           'leaveRequest.status',
           'leaveRequest.approverId',
+          'leaveRequest.reason',
+          'leaveRequest.note',
           'leaveRequest.createdAt',
           'leaveRequest.updatedAt',
+          'approver.id',
+          'approver.firstName',
+          'approver.lastName',
         ]);
 
       if (from) {
@@ -339,7 +345,7 @@ export class LeaveRequestsService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -387,7 +393,7 @@ export class LeaveRequestsService {
         throw new NotFoundException('Leave request not found');
       }
       return leaveRequest;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -465,7 +471,7 @@ export class LeaveRequestsService {
         reason,
       });
       return 'updated successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -549,7 +555,7 @@ export class LeaveRequestsService {
         });
       });
       return 'updated successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -579,7 +585,7 @@ export class LeaveRequestsService {
 
       await this.leaveRequestRepository.delete(leaveRequest.id);
       return 'deleted successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

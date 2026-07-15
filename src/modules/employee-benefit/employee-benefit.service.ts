@@ -108,7 +108,7 @@ export class EmployeeBenefitService {
           return newEmployeeBenefit;
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -186,7 +186,7 @@ export class EmployeeBenefitService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -215,7 +215,7 @@ export class EmployeeBenefitService {
       }
 
       return employeeBenefit;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -240,7 +240,7 @@ export class EmployeeBenefitService {
       const employeeBenefits = await queryBuilder.getMany();
 
       return employeeBenefits;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -300,7 +300,7 @@ export class EmployeeBenefitService {
       await this.employeeBenefitRepository.save(updatedEmployeeBenefit);
 
       return 'update employee benefit success';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -329,7 +329,7 @@ export class EmployeeBenefitService {
       await this.employeeBenefitRepository.softDelete(benefitId);
 
       return 'Employee benefit removed successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -367,7 +367,7 @@ export class EmployeeBenefitService {
           .execute();
       }
       this.logger.log(`Plus annual leave for ${idsToUpdate.length} employees`);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

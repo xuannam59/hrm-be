@@ -18,6 +18,7 @@ export class CreateEmployeeBenefitDto {
   @ApiProperty({ example: 1 })
   @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number)
   @IsPositive()
   employeeId: number;
 
@@ -50,6 +51,7 @@ export class CreateEmployeeBenefitDto {
 
   @ApiProperty({ example: 1000 })
   @IsNumber()
+  @Type(() => Number)
   @IsNotEmpty()
   @IsPositive()
   value: number;

@@ -63,7 +63,7 @@ export class AuthService {
         return result;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -102,7 +102,7 @@ export class AuthService {
       return {
         access_token: accessToken,
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -137,7 +137,7 @@ export class AuthService {
         },
       });
       return account;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -181,7 +181,7 @@ export class AuthService {
       return {
         access_token: accessToken,
       };
-    } catch (error) {
+    } catch (error: any) {
       res.clearCookie('refresh_token');
       if (error instanceof HttpException) {
         throw error;
@@ -234,7 +234,7 @@ export class AuthService {
       });
       this.logger.log(`User ${userInfo.email} changed password successfully`);
       return 'Change password successful';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -272,7 +272,7 @@ export class AuthService {
 
       this.logger.log(`User ${userInfo.email} reset password successfully`);
       return { password };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

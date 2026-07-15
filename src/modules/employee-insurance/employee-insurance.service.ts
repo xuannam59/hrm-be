@@ -16,6 +16,7 @@ import { CreateEmployeeInsuranceDto } from './dto/create-employee-insurance.dto'
 import { SearchEmployeeInsuranceQueryDto } from './dto/search-employee-insurance-query.dto';
 import { UpdateEmployeeInsuranceDto } from './dto/update-employee-insurance.dto';
 import { EmployeeInsuranceEntity } from './entities/employee-insurance.entity';
+import { IPaginationResponse } from '@/common/types/common.type';
 
 @Injectable()
 export class EmployeeInsuranceService {
@@ -49,7 +50,7 @@ export class EmployeeInsuranceService {
       await this.employeeInsuranceRepository.save(employeeInsurance);
 
       return employeeInsurance;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -63,7 +64,9 @@ export class EmployeeInsuranceService {
     }
   }
 
-  async findAll(query: SearchEmployeeInsuranceQueryDto) {
+  async findAll(
+    query: SearchEmployeeInsuranceQueryDto,
+  ): Promise<IPaginationResponse<EmployeeInsuranceEntity>> {
     try {
       const {
         page,
@@ -139,7 +142,7 @@ export class EmployeeInsuranceService {
       const [employeeInsurances, total] = await queryBuilder.getManyAndCount();
 
       return {
-        results: employeeInsurances,
+        result: employeeInsurances,
         pagination: {
           total,
           page,
@@ -147,7 +150,7 @@ export class EmployeeInsuranceService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -176,7 +179,7 @@ export class EmployeeInsuranceService {
       }
 
       return employeeInsurance;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -214,7 +217,7 @@ export class EmployeeInsuranceService {
       });
 
       return 'Updated successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -240,7 +243,7 @@ export class EmployeeInsuranceService {
 
       await this.employeeInsuranceRepository.softDelete(insuranceId);
       return 'Deleted successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

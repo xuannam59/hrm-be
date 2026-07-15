@@ -1,8 +1,10 @@
 import BaseSearchDto from '@/common/bases/search-dto.base';
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SearchEmployeeEducationQueryDto extends BaseSearchDto {
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   employeeId?: number;
 

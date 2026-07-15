@@ -56,7 +56,7 @@ export class AttendanceController {
   }
 
   @Patch(':id')
-  @Roles(ERole.ADMIN, ERole.MANAGER)
+  @Roles(ERole.ADMIN)
   @ResponseMessage('Update attendance successfully')
   async updateAttendance(
     @Param('id', ParseIntPipe) id: number,

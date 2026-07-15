@@ -83,7 +83,7 @@ export class AttendanceService {
         `Check in successful for employee ${employee.id} on ${getTodayDate()}`,
       );
       return saved;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -125,7 +125,7 @@ export class AttendanceService {
         `Check out successful for employee ${actor.employee.id} on ${getTodayDate()}`,
       );
       return saved;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -174,7 +174,6 @@ export class AttendanceService {
           'attendance.createdAt',
           'attendance.updatedAt',
           'employee.id',
-          'employee.employeeCode',
           'employee.firstName',
           'employee.lastName',
           'employee.position',
@@ -226,7 +225,7 @@ export class AttendanceService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -278,7 +277,7 @@ export class AttendanceService {
       }
 
       return await queryBuilder.getMany();
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -375,7 +374,7 @@ export class AttendanceService {
         `Attendance ${id} updated by user ${actor.id} (role: ${actor.role})`,
       );
       return saved;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

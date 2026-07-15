@@ -15,7 +15,7 @@ export class SearchPayrollQueryDto extends BaseSearchDto {
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  payrollMonth?: Date;
+  monthYear?: Date;
 
   @ApiPropertyOptional({ example: 1000000 })
   @IsOptional()

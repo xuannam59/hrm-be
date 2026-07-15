@@ -74,6 +74,7 @@ class CreateEmployeeDto {
 
   @ApiProperty({ example: 10000000.0 })
   @IsNumber()
+  @Type(() => Number)
   @IsNotEmpty()
   basicSalary: number;
 

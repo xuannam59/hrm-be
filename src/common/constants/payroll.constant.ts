@@ -6,15 +6,17 @@ export enum EPayrollStatus {
 
 export const PAYROLL_SELECT = [
   'payroll.id',
-  'payroll.payrollMonth',
+  'payroll.employeeId',
+  'payroll.month',
+  'payroll.year',
   'payroll.basicSalary',
   'payroll.standardWorkingDays',
   'payroll.workDays',
+  'payroll.leaveDays',
   'payroll.allowanceAmount',
   'payroll.bonusAmount',
   'payroll.grossSalary',
   'payroll.netSalary',
-  'payroll.status',
   'payroll.healthInsuranceAmount',
   'payroll.socialInsuranceAmount',
   'payroll.createdAt',
@@ -29,7 +31,8 @@ export const PAYROLL_SELECT = [
 export const ALLOWED_SORT_FIELDS_PAYROLL = [
   'id',
   'employeeId',
-  'payrollMonth',
+  'month',
+  'year',
   'basicSalary',
   'standardWorkingDays',
   'workDays',
@@ -37,7 +40,6 @@ export const ALLOWED_SORT_FIELDS_PAYROLL = [
   'bonusAmount',
   'grossSalary',
   'netSalary',
-  'status',
   'createdAt',
   'updatedAt',
 ];

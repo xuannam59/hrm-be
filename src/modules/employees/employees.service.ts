@@ -110,9 +110,6 @@ export class EmployeesService {
             qb.orWhere('employee.lastName LIKE :search', {
               search: `%${search}%`,
             });
-            qb.orWhere('employee.employeeCode LIKE :search', {
-              search: `%${search}%`,
-            });
           }),
         );
       }
@@ -145,7 +142,7 @@ export class EmployeesService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -178,7 +175,7 @@ export class EmployeesService {
       }
 
       return employee;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -231,7 +228,7 @@ export class EmployeesService {
       const employees = await queryBuilder.getMany();
 
       return employees;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -277,6 +274,8 @@ export class EmployeesService {
             status: createEmployeeDto.status,
           });
 
+          await transactionalEntityManager.save(employee);
+
           const employmentHistory = transactionalEntityManager.create(
             EmploymentHistoryEntity,
             {
@@ -293,6 +292,8 @@ export class EmployeesService {
             {
               employeeId: employee.id,
               benefitType: EBenefitType.ANNUAL_LEAVE,
+              benefitName: 'Annual Leave',
+              valueType: EBenefitValueType.DAY,
               value: 1.0,
               effectiveFrom: createEmployeeDto.hireDate,
             },
@@ -300,7 +301,6 @@ export class EmployeesService {
 
           await Promise.all([
             transactionalEntityManager.save(employmentHistory),
-            transactionalEntityManager.save(employee),
             transactionalEntityManager.save(employeeBenefit),
           ]);
 
@@ -341,7 +341,7 @@ export class EmployeesService {
           return employee;
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -421,7 +421,7 @@ export class EmployeesService {
           return employeeInfo;
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -438,6 +438,8 @@ export class EmployeesService {
     updateEmployeeDto: UpdateEmployeeDto,
   ) {
     try {
+      const { hireDate, position, status, departmentId, basicSalary } =
+        updateEmployeeDto;
       const employeeInfo = await this.employeeRepository.findOne({
         where: { id: employeeId },
         relations: { user: true },
@@ -466,11 +468,12 @@ export class EmployeesService {
 
       return await this.dataSource.transaction(
         async (transactionalEntityManager) => {
-          await transactionalEntityManager.update(
-            EmployeeEntity,
-            employeeId,
-            updateEmployeeDto,
-          );
+          await transactionalEntityManager.update(EmployeeEntity, employeeId, {
+            hireDate,
+            position,
+            status,
+            departmentId,
+          });
 
           if (updateEmployeeDto.status && employeeInfo.user) {
             await transactionalEntityManager.update(
@@ -532,7 +535,7 @@ export class EmployeesService {
           return 'Update employee successful';
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -584,7 +587,7 @@ export class EmployeesService {
           return 'Update employee profile successful';
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -736,6 +739,8 @@ export class EmployeesService {
                 employees.map((emp) => ({
                   employeeId: emp.id,
                   benefitType: EBenefitType.ANNUAL_LEAVE,
+                  benefitName: 'Annual Leave',
+                  valueType: EBenefitValueType.DAY,
                   value: 1.0,
                   effectiveFrom: emp.hireDate,
                 })),
@@ -762,11 +767,12 @@ export class EmployeesService {
               return employees.map((emp, idx) => ({
                 ...emp,
                 password: credentials[idx].password,
+                email: chunk[idx].email,
               }));
             },
           );
           imported.push(...chunkResult);
-        } catch (error) {
+        } catch (error: any) {
           failedChunks.push({
             from: i + 1,
             to: i + CHUNK_SIZE,
@@ -777,7 +783,7 @@ export class EmployeesService {
       }
 
       return { imported, failedChunks };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

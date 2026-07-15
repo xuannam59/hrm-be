@@ -7,7 +7,6 @@ export const BENEFIT_SELECT = [
   'employeeBenefit.value',
   'employeeBenefit.effectiveFrom',
   'employeeBenefit.effectiveTo',
-  'employeeBenefit.isActive',
   'employeeBenefit.createdAt',
   'employeeBenefit.updatedAt',
   'employee.id',

@@ -57,7 +57,7 @@ export class UsersController {
   // ) {
   //   try {
   //     return this.usersService.deleteUser(id, actor);
-  //   } catch (error) {
+  //   } catch (error : any) {
   //     throw new HttpException(error.message, HttpStatus.BAD_REQUEST, {
   //       cause: error,
   //     });

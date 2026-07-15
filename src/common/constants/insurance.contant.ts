@@ -10,7 +10,6 @@ export const INSURANCE_SELECT = [
   'employeeInsurance.insuranceNumber',
   'employeeInsurance.startDate',
   'employeeInsurance.endDate',
-  'employeeInsurance.isActive',
   'employeeInsurance.createdAt',
   'employee.id',
   'employee.firstName',

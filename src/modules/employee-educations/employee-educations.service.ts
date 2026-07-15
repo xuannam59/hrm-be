@@ -43,7 +43,7 @@ export class EmployeeEducationsService {
       });
 
       return await this.employeeEducationRepository.save(employeeEducation);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -136,7 +136,7 @@ export class EmployeeEducationsService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -154,7 +154,7 @@ export class EmployeeEducationsService {
     try {
       const queryBuilder = this.employeeEducationRepository
         .createQueryBuilder('employeeEducation')
-        .where('employee.id = :id', { id: actor.employee.id })
+        .where('employeeEducation.employeeId = :id', { id: actor.employee.id })
         .select([
           'employeeEducation.id',
           'employeeEducation.employeeId',
@@ -167,13 +167,10 @@ export class EmployeeEducationsService {
           'employeeEducation.updatedAt',
         ]);
 
-      const employeeEducation = await queryBuilder.getOne();
-      if (!employeeEducation) {
-        throw new NotFoundException('Employee education not found');
-      }
+      const employeeEducation = await queryBuilder.getMany();
 
       return employeeEducation;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -221,7 +218,7 @@ export class EmployeeEducationsService {
       }
 
       return employeeEducation;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -268,7 +265,7 @@ export class EmployeeEducationsService {
       });
 
       return 'Employee education updated successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -295,7 +292,7 @@ export class EmployeeEducationsService {
 
       await this.employeeEducationRepository.softDelete(id);
       return 'Employee education deleted successfully';
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }

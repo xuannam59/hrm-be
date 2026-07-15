@@ -219,7 +219,7 @@ export class PayrollsService {
 
         return listPayrolls;
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -241,9 +241,8 @@ export class PayrollsService {
         sortField,
         sortOrder,
         employeeId,
-        payrollMonth,
+        monthYear,
         basicSalary,
-        status,
       } = query;
 
       const skip = (page - 1) * limit;
@@ -266,22 +265,12 @@ export class PayrollsService {
         });
       }
 
-      if (payrollMonth) {
-        const startDate = new Date(
-          payrollMonth.getFullYear(),
-          payrollMonth.getMonth(),
-          1,
-        );
-        const endDate = new Date(
-          payrollMonth.getFullYear(),
-          payrollMonth.getMonth() + 1,
-          0,
-        );
+      if (monthYear) {
         queryBuilder.andWhere(
-          'payroll.payrollMonth BETWEEN :startDate AND :endDate',
+          'payroll.month = :month AND payroll.year = :year',
           {
-            startDate,
-            endDate,
+            month: monthYear.getMonth() + 1,
+            year: monthYear.getFullYear(),
           },
         );
       }
@@ -290,10 +279,6 @@ export class PayrollsService {
         queryBuilder.andWhere('payroll.basicSalary = :basicSalary', {
           basicSalary,
         });
-      }
-
-      if (status) {
-        queryBuilder.andWhere('payroll.status = :status', { status });
       }
 
       const [payrolls, total] = await queryBuilder.getManyAndCount();
@@ -307,7 +292,7 @@ export class PayrollsService {
           totalPages: Math.ceil(total / limit),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
@@ -332,7 +317,7 @@ export class PayrollsService {
       const payroll = await queryBuilder.getMany();
 
       return payroll;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
       }
