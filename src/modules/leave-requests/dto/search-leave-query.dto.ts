@@ -38,7 +38,7 @@ export class SearchLeaveQueryDto extends BaseSearchDto {
   })
   @IsOptional()
   @IsEnum(ELeaveRequestStatus)
-  status: ELeaveRequestStatus;
+  status?: ELeaveRequestStatus;
 }
 
 export class SearchMyLeaveQueryDto extends BaseSearchDto {
@@ -66,5 +66,5 @@ export class SearchMyLeaveQueryDto extends BaseSearchDto {
   })
   @IsOptional()
   @IsEnum(ELeaveRequestStatus)
-  status: ELeaveRequestStatus;
+  status?: ELeaveRequestStatus;
 }

@@ -15,19 +15,19 @@ class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: '123456789' })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  password: string;
+  password!: string;
 
   @ApiProperty({ example: 'ADMIN' })
   @IsString()
   @IsNotEmpty()
   @IsEnum(ERole)
-  role: ERole;
+  role!: ERole;
 
   @ApiProperty({ example: 'System Admin' })
   @IsString()
@@ -38,7 +38,7 @@ class CreateUserDto {
   @ApiProperty({ example: 1 })
   @IsInt()
   @IsNotEmpty()
-  employeeId: number;
+  employeeId!: number;
 }
 
 export default CreateUserDto;

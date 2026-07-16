@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -17,8 +16,6 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
   ) {}
 
   private readonly logger = new Logger(UsersService.name);

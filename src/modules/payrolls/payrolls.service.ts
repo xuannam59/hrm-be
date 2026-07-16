@@ -103,8 +103,6 @@ export class PayrollsService {
       const standardWorkingDays = workingDays.length;
 
       return this.dataSource.transaction(async (transactionalEntityManager) => {
-        const listPayrolls: any[] = [];
-
         const deleteConditions: any = {
           month,
           year,
@@ -119,7 +117,7 @@ export class PayrollsService {
           deleteConditions,
         );
 
-        for (const employee of listEmployees) {
+        const listPayrolls = listEmployees.map((employee) => {
           const currentEmploymentHistory = employee.employmentHistories.find(
             (history) => history.endDate === null,
           );
@@ -195,7 +193,7 @@ export class PayrollsService {
             ).toFixed(2),
           );
 
-          listPayrolls.push({
+          return {
             employeeId: employee.id,
             month,
             year,
@@ -209,8 +207,8 @@ export class PayrollsService {
             netSalary: Math.max(netSalary, 0),
             healthInsuranceAmount: healthInsuranceValue,
             socialInsuranceAmount: socialInsuranceValue,
-          });
-        }
+          };
+        });
 
         for (let i = 0; i < listPayrolls.length; i += CHUNK_SIZE) {
           const payrollChunk = listPayrolls.slice(i, i + CHUNK_SIZE);

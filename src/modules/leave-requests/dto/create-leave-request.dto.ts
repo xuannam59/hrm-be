@@ -16,7 +16,7 @@ export class CreateLeaveRequestDto {
   })
   @IsInt()
   @IsNotEmpty()
-  approverId: number;
+  approverId!: number;
 
   @ApiProperty({
     example: '2026-01-01',
@@ -24,7 +24,7 @@ export class CreateLeaveRequestDto {
   @IsDate()
   @Type(() => Date)
   @IsNotEmpty()
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({
     example: '2026-01-01',
@@ -32,7 +32,7 @@ export class CreateLeaveRequestDto {
   @IsDate()
   @Type(() => Date)
   @IsNotEmpty()
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty({
     example: ELeaveType.ANNUAL_LEAVE,
@@ -40,7 +40,7 @@ export class CreateLeaveRequestDto {
   })
   @IsEnum(ELeaveType)
   @IsNotEmpty()
-  leaveType: ELeaveType;
+  leaveType!: ELeaveType;
 
   @ApiProperty({
     example: 'I need to take a leave for personal reasons',

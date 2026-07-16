@@ -14,24 +14,24 @@ export class CreateEmployeeHistoryDto {
   @Transform(({ value }) => parseInt(value))
   @IsInt()
   @IsNotEmpty()
-  employeeId: number;
+  employeeId!: number;
 
   @ApiProperty({ example: 1 })
   @Transform(({ value }) => parseInt(value))
   @IsInt()
   @IsNotEmpty()
-  departmentId: number;
+  departmentId!: number;
 
   @ApiProperty({ example: 'Software Engineer' })
   @IsString()
   @IsNotEmpty()
-  position: string;
+  position!: string;
 
   @ApiProperty({ example: '2026-01-01' })
   @IsDate()
   @IsNotEmpty()
   @Type(() => Date)
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ example: '2026-01-01' })
   @IsDate()
@@ -43,5 +43,5 @@ export class CreateEmployeeHistoryDto {
   @ApiProperty({ example: 10000000.0 })
   @IsNumber()
   @IsNotEmpty()
-  basicSalary: number;
+  basicSalary!: number;
 }

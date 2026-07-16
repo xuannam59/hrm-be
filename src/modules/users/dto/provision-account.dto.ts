@@ -17,18 +17,18 @@ class ProvisionAccountDto {
   @IsString()
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: '12345678!' })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  password: string;
+  password!: string;
 
   @ApiProperty({ example: ERole.EMPLOYEE, enum: ERole })
   @IsEnum(ERole)
   @IsNotEmpty()
-  role: ERole;
+  role!: ERole;
 }
 
 export default ProvisionAccountDto;

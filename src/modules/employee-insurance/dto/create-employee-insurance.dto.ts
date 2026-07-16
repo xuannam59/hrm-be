@@ -17,23 +17,23 @@ export class CreateEmployeeInsuranceDto {
   @Type(() => Number)
   @IsNotEmpty()
   @IsPositive()
-  employeeId: number;
+  employeeId!: number;
 
   @ApiProperty({ example: '1234567890' })
   @IsString()
   @IsNotEmpty()
-  insuranceNumber: string;
+  insuranceNumber!: string;
 
   @ApiProperty({ example: EInsuranceType.HEALTH, enum: EInsuranceType })
   @IsEnum(EInsuranceType)
   @IsNotEmpty()
-  insuranceType: EInsuranceType;
+  insuranceType!: EInsuranceType;
 
   @ApiProperty({ example: new Date() })
   @IsDate()
   @IsNotEmpty()
   @Type(() => Date)
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ example: new Date() })
   @IsDate()

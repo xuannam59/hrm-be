@@ -24,73 +24,73 @@ import { EmploymentHistoryEntity } from '../../employee-histories/entities/emplo
 @Entity('Employee')
 export class EmployeeEntity extends BaseEntity {
   @Column({ type: 'varchar' })
-  firstName: string;
+  firstName!: string;
 
   @Column({ type: 'varchar' })
-  lastName: string;
+  lastName!: string;
 
   @Column({ type: 'enum', enum: EGenderType })
-  gender: EGenderType;
+  gender!: EGenderType;
 
   @Column({ type: 'datetime', nullable: true })
-  birthday: Date | null;
+  birthday!: Date | null;
 
   @Column({ type: 'varchar', nullable: true })
-  phone: string | null;
+  phone!: string | null;
 
   @Column({ type: 'varchar', nullable: true })
-  address: string | null;
+  address!: string | null;
 
   @Column({ type: 'varchar', nullable: true })
-  avatar: string | null;
+  avatar!: string | null;
 
   @Column({ type: 'datetime' })
-  hireDate: Date;
+  hireDate!: Date;
 
   @Column()
-  position: string;
+  position!: string;
 
   @Column({
     type: 'enum',
     enum: EEmployeeStatus,
     default: EEmployeeStatus.WORKING,
   })
-  status: EEmployeeStatus;
+  status!: EEmployeeStatus;
 
   @Column({ name: 'department_id' })
-  departmentId: number;
+  departmentId!: number;
 
   @ManyToOne(() => DepartmentEntity, (department) => department.employees)
   @JoinColumn({ name: 'department_id' })
-  department: DepartmentEntity;
+  department!: DepartmentEntity;
 
   @OneToMany(() => AttendanceEntity, (attendance) => attendance.employee)
-  attendances: AttendanceEntity[];
+  attendances!: AttendanceEntity[];
 
   @OneToMany(
     () => EmploymentHistoryEntity,
     (employmentHistory) => employmentHistory.employee,
   )
-  employmentHistories: EmploymentHistoryEntity[];
+  employmentHistories!: EmploymentHistoryEntity[];
 
   @OneToOne(() => UserEntity, (user) => user.employee)
-  user: UserEntity;
+  user!: UserEntity;
 
   @OneToOne(() => DepartmentEntity, (department) => department.manager)
-  managedDepartment: DepartmentEntity | null;
+  managedDepartment!: DepartmentEntity | null;
 
   @OneToMany(() => LeaveRequestEntity, (leaveRequest) => leaveRequest.employee)
-  leaveRequests: LeaveRequestEntity[];
+  leaveRequests!: LeaveRequestEntity[];
 
   @OneToMany(() => EmployeeEducationEntity, (education) => education.employee)
-  educations: EmployeeEducationEntity[];
+  educations!: EmployeeEducationEntity[];
 
   @OneToMany(() => EmployeeInsuranceEntity, (insurance) => insurance.employee)
-  insurances: EmployeeInsuranceEntity[];
+  insurances!: EmployeeInsuranceEntity[];
 
   @OneToMany(() => EmployeeBenefitEntity, (benefit) => benefit.employee)
-  benefits: EmployeeBenefitEntity[];
+  benefits!: EmployeeBenefitEntity[];
 
   @OneToMany(() => PayrollEntity, (payroll) => payroll.employee)
-  payrolls: PayrollEntity[];
+  payrolls!: PayrollEntity[];
 }

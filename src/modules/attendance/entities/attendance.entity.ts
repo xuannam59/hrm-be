@@ -8,24 +8,24 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
 @Unique(['employeeId', 'workDate'])
 export class AttendanceEntity extends BaseEntity {
   @Column({ name: 'employee_id' })
-  employeeId: number;
+  employeeId!: number;
 
   @Column({ type: 'date', name: 'work_date' })
-  workDate: Date;
+  workDate!: Date;
 
   @Column({ type: 'time', name: 'check_in' })
-  checkIn: string;
+  checkIn!: string;
 
   @Column({ type: 'time', name: 'check_out' })
-  checkOut: string;
+  checkOut!: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-  workHours: number;
+  workHours!: number;
 
   @Column({ type: 'enum', name: 'status', enum: EAttendanceStatus })
-  status: EAttendanceStatus;
+  status!: EAttendanceStatus;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.attendances)
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity;
+  employee!: EmployeeEntity;
 }

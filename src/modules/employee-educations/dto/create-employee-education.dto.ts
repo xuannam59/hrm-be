@@ -14,28 +14,28 @@ export class CreateEmployeeEducationDto {
   })
   @IsNotEmpty()
   @IsNumber()
-  employeeId: number;
+  employeeId!: number;
 
   @ApiProperty({
     example: 'Trường đại học',
   })
   @IsNotEmpty()
   @IsString()
-  school: string;
+  school!: string;
 
   @ApiProperty({
     example: 'Cử nhân',
   })
   @IsNotEmpty()
   @IsString()
-  degree: string;
+  degree!: string;
 
   @ApiProperty({
     example: 'Công nghệ thông tin',
   })
   @IsNotEmpty()
   @IsString()
-  fieldOfStudy: string;
+  fieldOfStudy!: string;
 
   @ApiProperty({
     example: 2020,
@@ -43,7 +43,7 @@ export class CreateEmployeeEducationDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(2000)
-  startYear: number;
+  startYear!: number;
 
   @ApiProperty({
     example: 2024,

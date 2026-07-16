@@ -6,24 +6,24 @@ import { EmploymentHistoryEntity } from '@/modules/employee-histories/entities/e
 @Entity('Department')
 export class DepartmentEntity extends BaseEntity {
   @Column({ unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null;
+  description?: string;
 
   @Column({ name: 'managerId', type: 'int', nullable: true, unique: true })
-  managerId: number | null;
+  managerId?: number;
 
   @OneToOne(() => EmployeeEntity, (employee) => employee.managedDepartment)
   @JoinColumn({ name: 'managerId' })
-  manager: EmployeeEntity | null;
+  manager?: EmployeeEntity;
 
   @OneToMany(() => EmployeeEntity, (employee) => employee.department)
-  employees: EmployeeEntity[];
+  employees!: EmployeeEntity[];
 
   @OneToMany(
     () => EmploymentHistoryEntity,
     (employmentHistory) => employmentHistory.department,
   )
-  employmentHistories: EmploymentHistoryEntity[];
+  employmentHistories!: EmploymentHistoryEntity[];
 }

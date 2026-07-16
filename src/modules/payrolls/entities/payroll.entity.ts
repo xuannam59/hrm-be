@@ -6,25 +6,25 @@ import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 @Unique(['employeeId', 'month', 'year'])
 export class PayrollEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })
-  employeeId: number;
+  employeeId!: number;
 
   @Column({ type: 'int', name: 'month' })
-  month: number;
+  month!: number;
 
   @Column({ type: 'int', name: 'year' })
-  year: number;
+  year!: number;
 
   @Column({ type: 'decimal', name: 'basic_salary', precision: 10, scale: 2 })
-  basicSalary: number;
+  basicSalary!: number;
 
   @Column({ type: 'int', name: 'standard_working_days' })
-  standardWorkingDays: number;
+  standardWorkingDays!: number;
 
   @Column({ type: 'decimal', name: 'work_days', precision: 10, scale: 2 })
-  workDays: number;
+  workDays!: number;
 
   @Column({ type: 'decimal', name: 'leave_days', precision: 10, scale: 2 })
-  leaveDays: number;
+  leaveDays!: number;
 
   @Column({
     type: 'decimal',
@@ -32,7 +32,7 @@ export class PayrollEntity extends BaseEntity {
     precision: 10,
     scale: 2,
   })
-  allowanceAmount: number;
+  allowanceAmount!: number;
 
   @Column({
     type: 'decimal',
@@ -40,7 +40,7 @@ export class PayrollEntity extends BaseEntity {
     precision: 10,
     scale: 2,
   })
-  bonusAmount: number;
+  bonusAmount!: number;
 
   @Column({
     type: 'decimal',
@@ -48,7 +48,7 @@ export class PayrollEntity extends BaseEntity {
     precision: 10,
     scale: 2,
   })
-  healthInsuranceAmount: number;
+  healthInsuranceAmount!: number;
 
   @Column({
     type: 'decimal',
@@ -56,15 +56,15 @@ export class PayrollEntity extends BaseEntity {
     precision: 10,
     scale: 2,
   })
-  socialInsuranceAmount: number;
+  socialInsuranceAmount!: number;
 
   @Column({ type: 'decimal', name: 'gross_salary', precision: 10, scale: 2 })
-  grossSalary: number;
+  grossSalary!: number;
 
   @Column({ type: 'decimal', name: 'net_salary', precision: 10, scale: 2 })
-  netSalary: number;
+  netSalary!: number;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.payrolls)
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity;
+  employee!: EmployeeEntity;
 }

@@ -20,23 +20,23 @@ export class CreateEmployeeBenefitDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsPositive()
-  employeeId: number;
+  employeeId!: number;
 
   @ApiProperty({ example: EBenefitType.ANNUAL_LEAVE, enum: EBenefitType })
   @IsEnum(EBenefitType)
   @IsNotEmpty()
-  benefitType: EBenefitType;
+  benefitType!: EBenefitType;
 
   @ApiProperty({ example: 'Annual Leave' })
   @IsString()
   @IsNotEmpty()
-  benefitName: string;
+  benefitName!: string;
 
   @ApiProperty({ example: '2026-07-01' })
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
-  effectiveFrom: Date;
+  effectiveFrom!: Date;
 
   @ApiProperty({ example: '2027-12-31' })
   @Type(() => Date)
@@ -47,12 +47,12 @@ export class CreateEmployeeBenefitDto {
   @ApiProperty({ example: EBenefitValueType.AMOUNT, enum: EBenefitValueType })
   @IsEnum(EBenefitValueType)
   @IsNotEmpty()
-  valueType: EBenefitValueType;
+  valueType!: EBenefitValueType;
 
   @ApiProperty({ example: 1000 })
   @IsNumber()
   @Type(() => Number)
   @IsNotEmpty()
   @IsPositive()
-  value: number;
+  value!: number;
 }

@@ -51,7 +51,7 @@ export class SearchMyAttendanceQueryDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
-  year: number;
+  year!: number;
 
   @ApiPropertyOptional({ example: 1, type: Number })
   @IsNotEmpty()
@@ -59,7 +59,7 @@ export class SearchMyAttendanceQueryDto {
   @IsInt()
   @Min(1)
   @Max(12)
-  month: number;
+  month!: number;
 
   @ApiPropertyOptional({ example: 1, type: Number })
   @IsOptional()

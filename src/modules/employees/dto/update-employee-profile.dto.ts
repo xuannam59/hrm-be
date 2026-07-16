@@ -14,33 +14,33 @@ class UpdateEmployeeProfileDto {
   @ApiProperty({ example: 'John' })
   @IsString()
   @IsNotEmpty()
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty({ example: 'Doe' })
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty({ example: EGenderType.MALE, enum: EGenderType })
   @IsEnum(EGenderType)
   @IsNotEmpty()
-  gender: EGenderType;
+  gender!: EGenderType;
 
   @ApiProperty({ example: '0901234567' })
   @IsString()
   @IsNotEmpty()
-  phone: string;
+  phone!: string;
 
   @ApiProperty({ example: 'Tien Du, Bac Ninh' })
   @IsString()
   @IsNotEmpty()
-  address: string;
+  address!: string;
 
   @ApiProperty({ example: '2026-07-01' })
   @Transform(({ value }) => new Date(value))
   @IsDate()
   @IsNotEmpty()
-  birthday: Date;
+  birthday!: Date;
 
   @ApiProperty({ example: 'https://example.com/avatar.jpg' })
   @IsString()

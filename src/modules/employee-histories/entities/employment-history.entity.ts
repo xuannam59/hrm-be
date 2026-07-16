@@ -6,16 +6,16 @@ import { DepartmentEntity } from '@/modules/departments/entities/department.enti
 @Entity('EmploymentHistory')
 export class EmploymentHistoryEntity extends BaseEntity {
   @Column({ name: 'employee_id' })
-  employeeId: number;
+  employeeId!: number;
 
   @Column({ name: 'department_id' })
-  departmentId: number;
+  departmentId!: number;
 
   @Column()
-  position: string;
+  position!: string;
 
   @Column({ type: 'date', name: 'start_date' })
-  startDate: Date;
+  startDate!: Date;
 
   @Column({ type: 'date', nullable: true, name: 'end_date' })
   endDate?: Date;
@@ -27,16 +27,16 @@ export class EmploymentHistoryEntity extends BaseEntity {
     default: 0.0,
     name: 'basic_salary',
   })
-  basicSalary: number;
+  basicSalary!: number;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.employmentHistories)
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity;
+  employee!: EmployeeEntity;
 
   @ManyToOne(
     () => DepartmentEntity,
     (department) => department.employmentHistories,
   )
   @JoinColumn({ name: 'department_id' })
-  department: DepartmentEntity;
+  department!: DepartmentEntity;
 }

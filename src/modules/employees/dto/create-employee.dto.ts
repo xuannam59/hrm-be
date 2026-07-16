@@ -22,17 +22,17 @@ class CreateEmployeeDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty({ example: 'Doe' })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty({ example: EGenderType.MALE, enum: EGenderType })
   @IsEnum(EGenderType)
-  gender: EGenderType;
+  gender!: EGenderType;
 
   @ApiProperty({ example: '1990-01-01' })
   @Type(() => Date)
@@ -55,13 +55,13 @@ class CreateEmployeeDto {
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
-  hireDate: Date;
+  hireDate!: Date;
 
   @ApiProperty({ example: 1 })
   @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
-  departmentId: number;
+  departmentId!: number;
 
   @ApiProperty({
     example: EEmployeeStatus.WORKING,
@@ -70,13 +70,13 @@ class CreateEmployeeDto {
   })
   @IsEnum(EEmployeeStatus)
   @IsNotEmpty()
-  status: EEmployeeStatus;
+  status!: EEmployeeStatus;
 
   @ApiProperty({ example: 10000000.0 })
   @IsNumber()
   @Type(() => Number)
   @IsNotEmpty()
-  basicSalary: number;
+  basicSalary!: number;
 
   @ApiProperty()
   @ValidateNested()

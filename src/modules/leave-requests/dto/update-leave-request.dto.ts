@@ -10,11 +10,11 @@ export class UpdateLeaveRequestStatusDto {
   })
   @IsEnum(ELeaveRequestStatus)
   @IsNotEmpty()
-  status: ELeaveRequestStatus;
+  status!: ELeaveRequestStatus;
 
   @ApiProperty({ example: 'Oke' })
   @IsString()
-  note: string;
+  note?: string;
 }
 
 export class UpdateMyLeaveRequestDto extends PartialType(

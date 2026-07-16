@@ -5,24 +5,24 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 @Entity('EmployeeEducation')
 export class EmployeeEducationEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })
-  employeeId: number;
+  employeeId!: number;
 
   @Column({ type: 'varchar' })
-  school: string;
+  school!: string;
 
   @Column({ type: 'varchar' })
-  degree: string;
+  degree!: string;
 
   @Column({ type: 'varchar', name: 'field_of_study' })
-  fieldOfStudy: string;
+  fieldOfStudy!: string;
 
   @Column({ type: 'int', name: 'start_year' })
-  startYear: number;
+  startYear!: number;
 
   @Column({ type: 'int', nullable: true, name: 'end_year' })
-  endYear: number | null;
+  endYear?: number;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.educations)
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity;
+  employee!: EmployeeEntity;
 }

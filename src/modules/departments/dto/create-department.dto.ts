@@ -7,7 +7,7 @@ export class CreateDepartmentDto {
   @ApiProperty({ example: 'HR' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'HR' })
   @IsString()

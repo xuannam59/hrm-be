@@ -6,31 +6,31 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 @Entity('User')
 export class UserEntity extends BaseEntity {
   @Column({ name: 'display_name' })
-  displayName: string;
+  displayName!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({ name: 'role', type: 'enum', enum: ERole })
-  role: ERole;
+  role!: ERole;
 
   @Column({ name: 'employee_id', type: 'int', unique: true })
-  employeeId: number;
+  employeeId!: number;
 
   @Column({
     type: 'enum',
     enum: EUserStatus,
     default: EUserStatus.ACTIVE,
   })
-  status: EUserStatus;
+  status!: EUserStatus;
 
   @Column({ name: 'last_login', type: 'datetime', nullable: true })
-  lastLogin: Date | null;
+  lastLogin!: Date | null;
 
   @OneToOne(() => EmployeeEntity, (employee) => employee.user)
   @JoinColumn({ name: 'employee_id' })
-  employee: EmployeeEntity;
+  employee!: EmployeeEntity;
 }
