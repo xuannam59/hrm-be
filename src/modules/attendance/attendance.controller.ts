@@ -61,8 +61,7 @@ export class AttendanceController {
   async updateAttendance(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateAttendanceDto,
-    @User() actor: IUser,
   ) {
-    return this.attendanceService.updateAttendance(id, body, actor);
+    return this.attendanceService.updateAttendance(id, body);
   }
 }

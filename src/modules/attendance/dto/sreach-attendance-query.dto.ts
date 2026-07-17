@@ -60,12 +60,4 @@ export class SearchMyAttendanceQueryDto {
   @Min(1)
   @Max(12)
   month!: number;
-
-  @ApiPropertyOptional({ example: 1, type: Number })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(31)
-  day?: number;
 }

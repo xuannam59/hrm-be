@@ -12,12 +12,10 @@ import {
   getTodayDate,
   getTodayWorkDate,
   timeToMinutes,
-  validateDay,
 } from '@/common/utils/date.util';
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -242,15 +240,23 @@ export class AttendanceService {
     actor: IUser,
   ): Promise<AttendanceEntity[]> {
     try {
-      const { year, month, day } = query;
+      const { year, month } = query;
 
-      const dateRange = this.resolveMyAttendanceDateRange(year, month, day);
+      const from = new Date(year, month - 1, 1, 0, 0, 0, 0);
+      const to = new Date(year, month, 0, 23, 59, 59, 999);
 
       const queryBuilder = this.attendanceRepository
         .createQueryBuilder('attendance')
         .where('attendance.employeeId = :employeeId', {
           employeeId: actor.employee.id,
         })
+        .andWhere(
+          'attendance.workDate >= :from AND attendance.workDate <= :to',
+          {
+            from,
+            to,
+          },
+        )
         .orderBy('attendance.workDate', 'DESC')
         .select([
           'attendance.id',
@@ -263,18 +269,6 @@ export class AttendanceService {
           'attendance.createdAt',
           'attendance.updatedAt',
         ]);
-
-      if (dateRange.from) {
-        queryBuilder.andWhere('attendance.workDate >= :from', {
-          from: dateRange.from,
-        });
-      }
-
-      if (dateRange.to) {
-        queryBuilder.andWhere('attendance.workDate <= :to', {
-          to: dateRange.to,
-        });
-      }
 
       return await queryBuilder.getMany();
     } catch (error: any) {
@@ -292,7 +286,6 @@ export class AttendanceService {
   async updateAttendance(
     id: number,
     body: UpdateAttendanceDto,
-    actor: IUser,
   ): Promise<AttendanceEntity> {
     try {
       const attendance = await this.attendanceRepository.findOne({
@@ -315,14 +308,6 @@ export class AttendanceService {
 
       if (!attendance) {
         throw new NotFoundException('Attendance not found');
-      }
-
-      if (actor.role === ERole.MANAGER) {
-        if (attendance.employee.departmentId !== actor.employee.departmentId) {
-          throw new ForbiddenException(
-            'You can only update attendance for employees in your department',
-          );
-        }
       }
 
       const checkInNumber = timeToMinutes(body.checkIn ?? attendance.checkIn);
@@ -370,9 +355,6 @@ export class AttendanceService {
 
       const saved = await this.attendanceRepository.save(attendance);
 
-      this.logger.log(
-        `Attendance ${id} updated by user ${actor.id} (role: ${actor.role})`,
-      );
       return saved;
     } catch (error: any) {
       if (error instanceof HttpException) {
@@ -384,46 +366,6 @@ export class AttendanceService {
         { cause: error },
       );
     }
-  }
-
-  private resolveMyAttendanceDateRange(
-    year?: number,
-    month?: number,
-    day?: number,
-  ): { from?: Date; to?: Date } {
-    if (month !== undefined && year === undefined) {
-      throw new BadRequestException('year is required when month is provided');
-    }
-
-    if (day !== undefined && (year === undefined || month === undefined)) {
-      throw new BadRequestException(
-        'year and month are required when day is provided',
-      );
-    }
-
-    if (year === undefined) {
-      return {};
-    }
-
-    if (month !== undefined) {
-      if (day !== undefined) {
-        validateDay(year, month, day);
-        return {
-          from: new Date(year, month - 1, day, 0, 0, 0, 0),
-          to: new Date(year, month - 1, day, 23, 59, 59, 999),
-        };
-      }
-
-      return {
-        from: new Date(year, month - 1, 1, 0, 0, 0, 0),
-        to: new Date(year, month, 0, 23, 59, 59, 999),
-      };
-    }
-
-    return {
-      from: new Date(year, 0, 1, 0, 0, 0, 0),
-      to: new Date(year, 11, 31, 23, 59, 59, 999),
-    };
   }
 
   private resolveStatus(checkTime: Date): EAttendanceStatus {

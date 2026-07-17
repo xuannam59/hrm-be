@@ -1,6 +1,7 @@
 import { IPaginationResponse } from '@/common/types/common.type';
 import { IUser } from '@/common/types/user.type';
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -8,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, DataSource, IsNull, Repository } from 'typeorm';
 import { DepartmentEntity } from '../departments/entities/department.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
@@ -25,41 +26,96 @@ export class EmployeeHistoriesService {
     private readonly employeeRepository: Repository<EmployeeEntity>,
     @InjectRepository(DepartmentEntity)
     private readonly departmentRepository: Repository<DepartmentEntity>,
+    private readonly dataSource: DataSource,
   ) {}
   private readonly logger = new Logger(EmployeeHistoriesService.name);
 
   async create(createEmployeeHistoryDto: CreateEmployeeHistoryDto) {
     try {
-      const [employee, department] = await Promise.all([
-        this.employeeRepository.findOne({
-          where: { id: createEmployeeHistoryDto.employeeId },
-          select: { id: true },
-        }),
-        this.departmentRepository.findOne({
-          where: { id: createEmployeeHistoryDto.departmentId },
-          select: { id: true },
-        }),
-      ]);
+      if (
+        createEmployeeHistoryDto.startDate &&
+        createEmployeeHistoryDto.endDate &&
+        createEmployeeHistoryDto.startDate > createEmployeeHistoryDto.endDate
+      ) {
+        throw new BadRequestException('Start date must be before end date');
+      }
+
+      const [employee, department, existingEmploymentHistory] =
+        await Promise.all([
+          this.employeeRepository.findOne({
+            where: { id: createEmployeeHistoryDto.employeeId },
+            select: { id: true },
+          }),
+          this.departmentRepository.findOne({
+            where: { id: createEmployeeHistoryDto.departmentId },
+            select: { id: true },
+          }),
+          this.employmentHistoryRepository
+            .createQueryBuilder('employmentHistory')
+            .where('employmentHistory.employeeId = :employeeId', {
+              employeeId: createEmployeeHistoryDto.employeeId,
+            })
+            .select([
+              'employmentHistory.id',
+              'employmentHistory.endDate',
+              'employmentHistory.startDate',
+            ])
+            .orderBy('employmentHistory.id', 'DESC')
+            .getOne(),
+        ]);
+
       if (!employee) {
         throw new NotFoundException('Employee not found');
       }
+
       if (!department) {
         throw new NotFoundException('Department not found');
       }
 
-      const employmentHistory = this.employmentHistoryRepository.create({
-        employeeId: employee.id,
-        departmentId: department.id,
-        position: createEmployeeHistoryDto.position,
-        startDate: createEmployeeHistoryDto.startDate,
-        basicSalary: createEmployeeHistoryDto.basicSalary,
+      if (existingEmploymentHistory) {
+        const newStart = new Date(createEmployeeHistoryDto.startDate);
+        const existStart = new Date(existingEmploymentHistory.startDate);
+        const existEnd = existingEmploymentHistory.endDate
+          ? new Date(existingEmploymentHistory.endDate)
+          : null;
+
+        const isOverlap = existEnd
+          ? existEnd > newStart
+          : newStart < existStart;
+
+        if (isOverlap) {
+          throw new BadRequestException(
+            'Employment history overlaps with an existing employment history',
+          );
+        }
+      }
+
+      return this.dataSource.transaction(async (transactionalEntityManager) => {
+        if (existingEmploymentHistory) {
+          await transactionalEntityManager.update(
+            EmploymentHistoryEntity,
+            { id: existingEmploymentHistory.id },
+            { endDate: createEmployeeHistoryDto.startDate },
+          );
+        }
+
+        const employmentHistory = transactionalEntityManager.create(
+          EmploymentHistoryEntity,
+          {
+            employeeId: employee.id,
+            departmentId: department.id,
+            position: createEmployeeHistoryDto.position,
+            startDate: createEmployeeHistoryDto.startDate,
+            endDate: createEmployeeHistoryDto.endDate ?? null,
+            basicSalary: createEmployeeHistoryDto.basicSalary,
+          },
+        );
+
+        this.logger.log(
+          `Employment history created successfully for employee ${employee.id}`,
+        );
+        return transactionalEntityManager.save(employmentHistory);
       });
-      const savedEmploymentHistory =
-        await this.employmentHistoryRepository.save(employmentHistory);
-      this.logger.log(
-        `Employment history created successfully for employee ${employee.id}`,
-      );
-      return savedEmploymentHistory;
     } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;
@@ -252,6 +308,14 @@ export class EmployeeHistoriesService {
     updateEmployeeHistoryDto: UpdateEmployeeHistoryDto,
   ) {
     try {
+      if (
+        updateEmployeeHistoryDto.startDate &&
+        updateEmployeeHistoryDto.endDate &&
+        updateEmployeeHistoryDto.startDate > updateEmployeeHistoryDto.endDate
+      ) {
+        throw new BadRequestException('Start date must be before end date');
+      }
+
       if (updateEmployeeHistoryDto.departmentId) {
         const department = await this.departmentRepository.findOne({
           where: { id: updateEmployeeHistoryDto.departmentId },
@@ -261,9 +325,10 @@ export class EmployeeHistoriesService {
           throw new NotFoundException('Department not found');
         }
       }
+
       const employmentHistory = await this.employmentHistoryRepository.findOne({
         where: { id: employmentHistoryId },
-        select: { id: true },
+        select: { id: true, endDate: true, startDate: true },
       });
 
       if (!employmentHistory) {
@@ -274,7 +339,7 @@ export class EmployeeHistoriesService {
         departmentId: updateEmployeeHistoryDto.departmentId,
         position: updateEmployeeHistoryDto.position,
         startDate: updateEmployeeHistoryDto.startDate,
-        endDate: updateEmployeeHistoryDto.endDate,
+        endDate: updateEmployeeHistoryDto.endDate ?? null,
       });
 
       this.logger.log(
@@ -302,7 +367,7 @@ export class EmployeeHistoriesService {
       if (!employmentHistory) {
         throw new NotFoundException('Employment history not found');
       }
-      await this.employmentHistoryRepository.softDelete(employmentHistoryId);
+      await this.employmentHistoryRepository.delete(employmentHistoryId);
       this.logger.log(
         `Employment history deleted successfully for employee ${employmentHistory.employeeId}`,
       );

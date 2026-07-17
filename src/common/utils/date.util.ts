@@ -80,16 +80,6 @@ export const validateMonth = (month: number) => {
   }
 };
 
-export const validateDay = (year: number, month: number, day: number) => {
-  validateMonth(month);
-  const lastDay = new Date(year, month, 0).getDate();
-  if (day < 1 || day > lastDay) {
-    throw new BadRequestException(
-      `Day must be between 1 and ${lastDay} for ${month}/${year}`,
-    );
-  }
-};
-
 export const getNumberOfLeaveDays = (
   startDate: Date,
   endDate: Date,
@@ -118,17 +108,11 @@ export const getWorkingDaysAndWeekendDaysInMonth = (
   ) {
     const dayOfWeek = cursorDate.getDay();
 
+    const yyyyMmDd = `${cursorDate.getFullYear()}-${cursorDate.getMonth() + 1}-${cursorDate.getDate()}`;
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-      const nextDayDate = new Date(cursorDate);
-      nextDayDate.setHours(0, 0, 0, 0);
-      nextDayDate.setDate(nextDayDate.getDate() + 1);
-      weekendDays.push(
-        `${nextDayDate.getFullYear()}-${nextDayDate.getMonth() + 1}-${nextDayDate.getDate()}`,
-      );
+      weekendDays.push(yyyyMmDd);
     } else {
-      workingDays.push(
-        `${cursorDate.getFullYear()}-${cursorDate.getMonth() + 1}-${cursorDate.getDate()}`,
-      );
+      workingDays.push(yyyyMmDd);
     }
   }
   return { weekendDays, workingDays };

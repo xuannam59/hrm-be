@@ -94,10 +94,10 @@ export class LeaveRequestsService {
       }
 
       if (
-        actor.role !== ERole.EMPLOYEE &&
+        actor.role === ERole.EMPLOYEE &&
         actor.employee.departmentId !== approverInfo.departmentId
       ) {
-        throw new BadRequestException('Not in the same department');
+        throw new BadRequestException('Approver is not in the same department');
       }
 
       const approverRole = approverInfo.user.role;
@@ -233,7 +233,7 @@ export class LeaveRequestsService {
       }
 
       if (to) {
-        queryBuilder.andWhere('leaveRequest.endDate <= :to', {
+        queryBuilder.andWhere('leaveRequest.startDate <= :to', {
           to: new Date(to).setHours(23, 59, 59, 999),
         });
       }

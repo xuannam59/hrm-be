@@ -13,7 +13,7 @@ import { EmployeeInsuranceModule } from './modules/employee-insurance/employee-i
 import { EmployeeBenefitModule } from './modules/employee-benefit/employee-benefit.module';
 import { PayrollsModule } from './modules/payrolls/payrolls.module';
 import { ScheduleModule } from '@nestjs/schedule';
-
+import { RedisModule } from './infrastructure/database/redis.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    RedisModule,
     UsersModule,
     AuthModule,
     EmployeesModule,

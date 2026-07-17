@@ -44,22 +44,32 @@ export class PayrollsService {
       monthStart.setHours(0, 0, 0, 0);
       const monthEnd = new Date(year, month, 0);
       monthEnd.setHours(23, 59, 59, 999);
+      const now = new Date();
+
+      const { workingDays, weekendDays } = getWorkingDaysAndWeekendDaysInMonth(
+        year,
+        month,
+      );
 
       const queryBuilder = this.employeeRepository
         .createQueryBuilder('employee')
         .leftJoinAndSelect(
           'employee.employmentHistories',
           'employmentHistories',
+          'employmentHistories.startDate <= :now AND (employmentHistories.endDate IS NULL OR employmentHistories.endDate > :now)',
+          { now },
         )
         .leftJoinAndSelect('employee.insurances', 'insurances')
         .leftJoinAndSelect('employee.benefits', 'benefits')
         .leftJoinAndSelect(
           'employee.attendances',
           'attendances',
-          'attendances.workDate BETWEEN :startDate AND :endDate',
+          `attendances.workDate BETWEEN :startDate AND :endDate 
+            AND attendances.workDate NOT IN (:...excludedDates)`,
           {
             startDate: monthStart,
             endDate: monthEnd,
+            excludedDates: weekendDays,
           },
         )
         .where('employee.status = :status', {
@@ -96,7 +106,6 @@ export class PayrollsService {
       }
 
       const listEmployees = await queryBuilder.getMany();
-      const { workingDays } = getWorkingDaysAndWeekendDaysInMonth(year, month);
 
       if (listEmployees.length === 0) return [];
 
@@ -119,7 +128,9 @@ export class PayrollsService {
 
         const listPayrolls = listEmployees.map((employee) => {
           const currentEmploymentHistory = employee.employmentHistories.find(
-            (history) => history.endDate === null,
+            (history) =>
+              history.endDate === null ||
+              (history.endDate && new Date(history.endDate) > now),
           );
 
           const basicSalary = Number(

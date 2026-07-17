@@ -6,11 +6,11 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DiscoveryService } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
@@ -20,6 +20,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { generateRandomString } from '@/common/utils/string.util';
+import { CACHE_MANAGER, type Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +30,7 @@ export class AuthService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    private readonly discoveryService: DiscoveryService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
@@ -190,9 +191,27 @@ export class AuthService {
     }
   }
 
-  logout(res: Response) {
-    res.clearCookie('refresh_token');
-    return 'Logout successful';
+  async logout(req: Request, res: Response, user: IUser) {
+    try {
+      const authorization = req.headers.authorization;
+      const accessToken = authorization ? authorization.split(' ')[1] : '';
+      await this.cacheManager.set(
+        `blacklist_token:${user.id}`,
+        accessToken,
+        ms(this.configService.get<StringValue>('JWT_ACCESS_EXPIRES', '15m')),
+      );
+      res.clearCookie('refresh_token');
+      return 'Logout successful';
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message ?? 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
   }
 
   async changePassword(user: IUser, changePasswordDto: ChangePasswordDto) {

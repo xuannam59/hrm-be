@@ -1,15 +1,22 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IPayloadToken } from '@/common/types/auths.type';
 import { UsersService } from '@/modules/users/users.service';
+import { Request } from 'express';
+import { Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly cacheManager: Cache,
   ) {
     const jwtSecret = configService.get<string>('JWT_ACCESS_SECRET');
     if (!jwtSecret) {
@@ -19,10 +26,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: IPayloadToken) {
+  async validate(req: Request, payload: IPayloadToken) {
+    const authorization = req.headers.authorization;
+    const accessToken = authorization ? authorization.split(' ')[1] : '';
+
+    const blacklistToken = await this.cacheManager.get<string>(
+      `blacklist_token:${payload.userId}`,
+    );
+
+    if (blacklistToken && blacklistToken === accessToken) {
+      throw new ForbiddenException('Token is invalid');
+    }
+
     const user = await this.usersService.findByEmail(payload.email);
     if (!user) {
       throw new UnauthorizedException('User is not valid');

@@ -18,7 +18,7 @@ export class EmploymentHistoryEntity extends BaseEntity {
   startDate!: Date;
 
   @Column({ type: 'date', nullable: true, name: 'end_date' })
-  endDate?: Date;
+  endDate!: Date | null;
 
   @Column({
     type: 'decimal',
