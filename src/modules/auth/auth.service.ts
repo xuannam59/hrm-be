@@ -195,6 +195,7 @@ export class AuthService {
     try {
       const authorization = req.headers.authorization;
       const accessToken = authorization ? authorization.split(' ')[1] : '';
+      await this.cacheManager.del(`blacklist_token:${user.id}`);
       await this.cacheManager.set(
         `blacklist_token:${user.id}`,
         accessToken,

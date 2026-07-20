@@ -25,9 +25,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any) {
-    if (err) {
-      throw err;
-    } else if (!user) {
+    if (err || !user) {
       throw new UnauthorizedException(
         'Token is invalid or not provided in header',
       );

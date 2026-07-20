@@ -1,15 +1,11 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
-import {
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { IPayloadToken } from '@/common/types/auths.type';
 import { UsersService } from '@/modules/users/users.service';
-import { Request } from 'express';
 import { Cache } from '@nestjs/cache-manager';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -39,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     if (blacklistToken && blacklistToken === accessToken) {
-      throw new ForbiddenException('Token is invalid');
+      throw new UnauthorizedException('Token is invalid');
     }
 
     const user = await this.usersService.findByEmail(payload.email);
