@@ -1,3 +1,9 @@
+import { ERole } from '@/common/constants/user.constant';
+import { Public, ResponseMessage } from '@/common/decorators/public.decorator';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { User } from '@/common/decorators/user.decorator';
+import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
+import { type IUser } from '@/common/types/user.type';
 import {
   Body,
   Controller,
@@ -10,22 +16,25 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { User } from '@/common/decorators/user.decorator';
 import { ApiBody } from '@nestjs/swagger';
-import { type IUser } from '@/common/types/user.type';
 import type { Request, Response } from 'express';
-import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
+import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { Public } from '@/common/decorators/public.decorator';
-import { ResponseMessage } from '@/common/decorators/public.decorator';
-import { Roles } from '@/common/decorators/roles.decorator';
-import { ERole } from '@/common/constants/user.constant';
+import { LoginDto } from './dto/login.dto';
+import CheckIpGuard from '@/common/guards/check-ip.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @UseGuards(CheckIpGuard)
+  @Get('check-ip')
+  checkIp() {
+    return {
+      message: 'IP is valid',
+    };
+  }
 
   @Public()
   @UseGuards(LocalAuthGuard)

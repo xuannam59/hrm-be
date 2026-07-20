@@ -89,7 +89,17 @@ export const getNumberOfLeaveDays = (
   start.setHours(0, 0, 0, 0);
   end.setHours(23, 59, 59, 999);
   const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  for (
+    let cursorDate = start;
+    cursorDate < end;
+    cursorDate.setDate(cursorDate.getDate() + 1)
+  ) {
+    const dayOfWeek = cursorDate.getDay();
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      diffDays--;
+    }
+  }
   return diffDays;
 };
 

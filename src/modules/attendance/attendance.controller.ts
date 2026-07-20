@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import {
@@ -19,11 +20,13 @@ import {
   SearchMyAttendanceQueryDto,
 } from './dto/sreach-attendance-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+import CheckIpGuard from '@/common/guards/check-ip.guard';
 
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @UseGuards(CheckIpGuard)
   @Post('check-in')
   @Roles(ERole.EMPLOYEE, ERole.MANAGER)
   @ResponseMessage('Check time successfully')
@@ -31,6 +34,7 @@ export class AttendanceController {
     return this.attendanceService.checkIn(actor);
   }
 
+  @UseGuards(CheckIpGuard)
   @Post('check-out')
   @Roles(ERole.EMPLOYEE, ERole.MANAGER)
   @ResponseMessage('Check time successfully')
