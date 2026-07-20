@@ -18,6 +18,5 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       inject: [ConfigService],
     }),
   ],
-  exports: [TypeOrmModule],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }
