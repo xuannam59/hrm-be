@@ -3,7 +3,7 @@ import { EAttendanceStatus } from '@/common/constants/attendance.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('Attendance')
+@Entity('attendances')
 @Index(['employeeId', 'workDate'], { unique: true })
 export class AttendanceEntity extends BaseEntity {
   @Column({ name: 'employee_id' })

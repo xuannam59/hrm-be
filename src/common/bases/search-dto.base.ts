@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { ESortOrder } from '../constants/common.constant';
 
-class BaseSearchDto {
+abstract class BaseSearchDto {
   @ApiPropertyOptional({ example: 1 })
   @Type(() => Number)
   @IsInt()

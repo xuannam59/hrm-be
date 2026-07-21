@@ -12,7 +12,13 @@ class CheckIpGuard implements CanActivate {
   constructor(private readonly configService: ConfigService) {}
 
   canActivate(context: ExecutionContext) {
-    const ipWhitelist = this.configService.getOrThrow<string>('IP_WHITELIST');
+    const ipWhitelist = this.configService
+      .get<string>('IP_WHITELIST')
+      ?.split(',');
+
+    if (!ipWhitelist) {
+      return true;
+    }
 
     const request: Request = context.switchToHttp().getRequest();
     const rawIp = request.ip || request.socket.remoteAddress || '';

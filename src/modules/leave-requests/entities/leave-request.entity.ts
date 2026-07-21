@@ -6,7 +6,7 @@ import {
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('LeaveRequest')
+@Entity('leave_requests')
 @Index(['employeeId'])
 @Index(['status'])
 @Index(['approverId'])

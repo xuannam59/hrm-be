@@ -21,7 +21,7 @@ import {
 } from 'typeorm';
 import { EmploymentHistoryEntity } from '../../employee-histories/entities/employment-history.entity';
 
-@Entity('Employee')
+@Entity('employees')
 export class EmployeeEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   firstName!: string;

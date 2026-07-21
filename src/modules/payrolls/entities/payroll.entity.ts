@@ -2,7 +2,7 @@ import { BaseEntity } from '@/common/bases/entity.base';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 
-@Entity('Payroll')
+@Entity('payrolls')
 @Unique(['employeeId', 'month', 'year'])
 export class PayrollEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })

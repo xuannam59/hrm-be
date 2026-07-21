@@ -3,7 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { EmployeeEntity } from '../../employees/entities/employee.entity';
 import { DepartmentEntity } from '@/modules/departments/entities/department.entity';
 
-@Entity('EmploymentHistory')
+@Entity('employment_histories')
 export class EmploymentHistoryEntity extends BaseEntity {
   @Column({ name: 'employee_id' })
   employeeId!: number;

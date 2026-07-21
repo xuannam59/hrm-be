@@ -3,7 +3,7 @@ import { ERole, EUserStatus } from '@/common/constants/user.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
-@Entity('User')
+@Entity('users')
 export class UserEntity extends BaseEntity {
   @Column({ name: 'display_name' })
   displayName!: string;

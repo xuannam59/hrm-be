@@ -3,7 +3,7 @@ import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { BaseEntity } from '@/common/bases/entity.base';
 import { EmploymentHistoryEntity } from '@/modules/employee-histories/entities/employment-history.entity';
 
-@Entity('Department')
+@Entity('departments')
 export class DepartmentEntity extends BaseEntity {
   @Column({ unique: true })
   name!: string;

@@ -2,7 +2,7 @@ import { BaseEntity } from '@/common/bases/entity.base';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('EmployeeEducation')
+@Entity('employee_educations')
 export class EmployeeEducationEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })
   employeeId!: number;

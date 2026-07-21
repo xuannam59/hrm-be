@@ -6,7 +6,7 @@ import {
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('EmployeeBenefit')
+@Entity('employee_benefits')
 @Index(['employeeId'])
 export class EmployeeBenefitEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })

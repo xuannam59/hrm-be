@@ -3,7 +3,7 @@ import { EInsuranceType } from '@/common/constants/insurance.contant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
-@Entity('EmployeeInsurance')
+@Entity('employee_insurances')
 @Index(['employeeId'])
 export class EmployeeInsuranceEntity extends BaseEntity {
   @Column({ type: 'int', name: 'employee_id' })
