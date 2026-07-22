@@ -17,6 +17,7 @@ import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto'
 import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
 import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
 import { EmployeeEducationsService } from './employee-educations.service';
+import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
 
 @Controller('employee-educations')
 export class EmployeeEducationsController {
@@ -26,7 +27,10 @@ export class EmployeeEducationsController {
 
   @Post()
   @Roles(ERole.ADMIN)
-  create(@Body() createEmployeeEducationDto: CreateEmployeeEducationDto) {
+  create(
+    @Body(ExistEmployeeBodyPipe)
+    createEmployeeEducationDto: CreateEmployeeEducationDto,
+  ) {
     return this.employeeEducationsService.create(createEmployeeEducationDto);
   }
 

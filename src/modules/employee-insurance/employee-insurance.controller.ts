@@ -15,6 +15,7 @@ import { CreateEmployeeInsuranceDto } from './dto/create-employee-insurance.dto'
 import { SearchEmployeeInsuranceQueryDto } from './dto/search-employee-insurance-query.dto';
 import { UpdateEmployeeInsuranceDto } from './dto/update-employee-insurance.dto';
 import { EmployeeInsuranceService } from './employee-insurance.service';
+import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
 
 @Controller('employee-insurance')
 export class EmployeeInsuranceController {
@@ -24,7 +25,10 @@ export class EmployeeInsuranceController {
 
   @Post()
   @Roles(ERole.ADMIN)
-  create(@Body() createEmployeeInsuranceDto: CreateEmployeeInsuranceDto) {
+  create(
+    @Body(ExistEmployeeBodyPipe)
+    createEmployeeInsuranceDto: CreateEmployeeInsuranceDto,
+  ) {
     return this.employeeInsuranceService.create(createEmployeeInsuranceDto);
   }
 

@@ -17,6 +17,7 @@ import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
 import { SearchEmployeeBenefitQueryDto } from './dto/search-employee-benefit-query.dto';
 import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
 import { EmployeeBenefitService } from './employee-benefit.service';
+import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
 
 @Controller('employee-benefit')
 export class EmployeeBenefitController {
@@ -26,7 +27,10 @@ export class EmployeeBenefitController {
 
   @Post()
   @Roles(ERole.ADMIN)
-  create(@Body() createEmployeeBenefitDto: CreateEmployeeBenefitDto) {
+  create(
+    @Body(ExistEmployeeBodyPipe)
+    createEmployeeBenefitDto: CreateEmployeeBenefitDto,
+  ) {
     return this.employeeBenefitService.create(createEmployeeBenefitDto);
   }
 

@@ -9,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { DepartmentEntity } from '../departments/entities/department.entity';
 import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
@@ -40,33 +40,24 @@ export class EmployeeHistoriesService {
         throw new BadRequestException('Start date must be before end date');
       }
 
-      const [employee, department, existingEmploymentHistory] =
-        await Promise.all([
-          this.employeeRepository.findOne({
-            where: { id: createEmployeeHistoryDto.employeeId },
-            select: { id: true },
-          }),
-          this.departmentRepository.findOne({
-            where: { id: createEmployeeHistoryDto.departmentId },
-            select: { id: true },
-          }),
-          this.employmentHistoryRepository
-            .createQueryBuilder('employmentHistory')
-            .where('employmentHistory.employeeId = :employeeId', {
-              employeeId: createEmployeeHistoryDto.employeeId,
-            })
-            .select([
-              'employmentHistory.id',
-              'employmentHistory.endDate',
-              'employmentHistory.startDate',
-            ])
-            .orderBy('employmentHistory.id', 'DESC')
-            .getOne(),
-        ]);
-
-      if (!employee) {
-        throw new NotFoundException('Employee not found');
-      }
+      const [department, existingEmploymentHistory] = await Promise.all([
+        this.departmentRepository.findOne({
+          where: { id: createEmployeeHistoryDto.departmentId },
+          select: { id: true },
+        }),
+        this.employmentHistoryRepository
+          .createQueryBuilder('employmentHistory')
+          .where('employmentHistory.employeeId = :employeeId', {
+            employeeId: createEmployeeHistoryDto.employeeId,
+          })
+          .select([
+            'employmentHistory.id',
+            'employmentHistory.endDate',
+            'employmentHistory.startDate',
+          ])
+          .orderBy('employmentHistory.id', 'DESC')
+          .getOne(),
+      ]);
 
       if (!department) {
         throw new NotFoundException('Department not found');
@@ -102,7 +93,7 @@ export class EmployeeHistoriesService {
         const employmentHistory = transactionalEntityManager.create(
           EmploymentHistoryEntity,
           {
-            employeeId: employee.id,
+            employeeId: createEmployeeHistoryDto.employeeId,
             departmentId: department.id,
             position: createEmployeeHistoryDto.position,
             startDate: createEmployeeHistoryDto.startDate,
@@ -112,7 +103,7 @@ export class EmployeeHistoriesService {
         );
 
         this.logger.log(
-          `Employment history created successfully for employee ${employee.id}`,
+          `Employment history created successfully for employee ${createEmployeeHistoryDto.employeeId}`,
         );
         return transactionalEntityManager.save(employmentHistory);
       });

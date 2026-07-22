@@ -28,17 +28,6 @@ export class EmployeeInsuranceService {
   ) {}
   async create(createEmployeeInsuranceDto: CreateEmployeeInsuranceDto) {
     try {
-      const employee = await this.employeeRepository.findOne({
-        where: {
-          id: createEmployeeInsuranceDto.employeeId,
-          status: EEmployeeStatus.WORKING,
-        },
-      });
-
-      if (!employee) {
-        throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
-      }
-
       const employeeInsurance = this.employeeInsuranceRepository.create({
         employeeId: createEmployeeInsuranceDto.employeeId,
         insuranceType: createEmployeeInsuranceDto.insuranceType,

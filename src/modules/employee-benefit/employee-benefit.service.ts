@@ -36,25 +36,13 @@ export class EmployeeBenefitService {
   async create(createEmployeeBenefitDto: CreateEmployeeBenefitDto) {
     try {
       const now = new Date();
-      const [employeeInfo, employeeBenefit] = await Promise.all([
-        this.employeeRepository.findOne({
-          where: {
-            id: createEmployeeBenefitDto.employeeId,
-            status: EEmployeeStatus.WORKING,
-          },
-        }),
-        this.employeeBenefitRepository.findOne({
-          where: {
-            employeeId: createEmployeeBenefitDto.employeeId,
-            benefitType: createEmployeeBenefitDto.benefitType,
-            effectiveTo: Or(IsNull(), MoreThanOrEqual(now)),
-          },
-        }),
-      ]);
-
-      if (!employeeInfo) {
-        throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
-      }
+      const oldEmployeeBenefit = await this.employeeBenefitRepository.findOne({
+        where: {
+          employeeId: createEmployeeBenefitDto.employeeId,
+          benefitType: createEmployeeBenefitDto.benefitType,
+          effectiveTo: Or(IsNull(), MoreThanOrEqual(now)),
+        },
+      });
 
       if (
         createEmployeeBenefitDto.effectiveTo &&
@@ -68,18 +56,18 @@ export class EmployeeBenefitService {
 
       return await this.dataSource.transaction(
         async (transactionalEntityManager) => {
-          if (employeeBenefit) {
+          if (oldEmployeeBenefit) {
             const closeDate = new Date(createEmployeeBenefitDto.effectiveFrom);
             closeDate.setDate(closeDate.getDate() - 1);
 
             const effectiveToForOld =
-              closeDate < employeeBenefit.effectiveFrom
-                ? employeeBenefit.effectiveFrom
+              closeDate < oldEmployeeBenefit.effectiveFrom
+                ? oldEmployeeBenefit.effectiveFrom
                 : closeDate;
 
             await transactionalEntityManager.update(
               EmployeeBenefitEntity,
-              { id: employeeBenefit.id },
+              { id: oldEmployeeBenefit.id },
               {
                 effectiveTo: effectiveToForOld,
               },

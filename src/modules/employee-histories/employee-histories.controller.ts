@@ -17,6 +17,7 @@ import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
 import SearchHistoryQueryDto from './dto/search-history-query.dto';
 import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
 import { EmployeeHistoriesService } from './employee-histories.service';
+import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
 
 @Controller('employee-histories')
 export class EmployeeHistoriesController {
@@ -26,7 +27,10 @@ export class EmployeeHistoriesController {
 
   @Post()
   @Roles(ERole.ADMIN)
-  create(@Body() createEmployeeHistoryDto: CreateEmployeeHistoryDto) {
+  create(
+    @Body(ExistEmployeeBodyPipe)
+    createEmployeeHistoryDto: CreateEmployeeHistoryDto,
+  ) {
     return this.employeeHistoriesService.create(createEmployeeHistoryDto);
   }
 

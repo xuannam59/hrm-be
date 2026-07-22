@@ -372,9 +372,8 @@ export class EmployeesService {
             },
           },
         }),
-        this.userRepository.findOne({
+        this.userRepository.exists({
           where: { email: provisionAccountDto.email },
-          select: { id: true },
         }),
       ]);
 
