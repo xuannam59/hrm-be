@@ -14,6 +14,7 @@ import { EmployeeBenefitModule } from './modules/employee-benefit/employee-benef
 import { PayrollsModule } from './modules/payrolls/payrolls.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from './infrastructure/database/redis.module';
+import { AppService } from './app.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,5 +35,6 @@ import { RedisModule } from './infrastructure/database/redis.module';
     EmployeeBenefitModule,
     PayrollsModule,
   ],
+  providers: [AppService],
 })
 export class AppModule {}
