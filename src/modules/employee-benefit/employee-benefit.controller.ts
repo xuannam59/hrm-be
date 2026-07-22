@@ -1,6 +1,7 @@
 import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { User } from '@/common/decorators/user.decorator';
+import { EntityExistPipe } from '@/common/pipes/validate-exist.pipe';
 import { type IUser } from '@/common/types/user.type';
 import {
   Body,
@@ -13,11 +14,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
 import { SearchEmployeeBenefitQueryDto } from './dto/search-employee-benefit-query.dto';
 import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
 import { EmployeeBenefitService } from './employee-benefit.service';
-import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
+import { EmployeeBenefitEntity } from './entities/employee-benefit.entity';
 
 @Controller('employee-benefit')
 export class EmployeeBenefitController {
@@ -28,7 +30,7 @@ export class EmployeeBenefitController {
   @Post()
   @Roles(ERole.ADMIN)
   create(
-    @Body(ExistEmployeeBodyPipe)
+    @Body(EntityExistPipe(EmployeeEntity, 'employeeId'))
     createEmployeeBenefitDto: CreateEmployeeBenefitDto,
   ) {
     return this.employeeBenefitService.create(createEmployeeBenefitDto);
@@ -64,7 +66,9 @@ export class EmployeeBenefitController {
 
   @Delete(':id')
   @Roles(ERole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', EntityExistPipe(EmployeeBenefitEntity, 'id')) id: number,
+  ) {
     return this.employeeBenefitService.remove(id);
   }
 }

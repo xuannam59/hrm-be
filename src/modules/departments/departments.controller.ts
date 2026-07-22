@@ -16,6 +16,8 @@ import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { EntityExistPipe } from '@/common/pipes/validate-exist.pipe';
+import { DepartmentEntity } from './entities/department.entity';
 
 @Controller('departments')
 export class DepartmentsController {
@@ -39,7 +41,7 @@ export class DepartmentsController {
   @Roles(ERole.ADMIN)
   @ResponseMessage('Update department successful')
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', EntityExistPipe(DepartmentEntity, 'id')) id: number,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
   ) {
     return this.departmentsService.updateDepartment(id, updateDepartmentDto);
@@ -48,7 +50,9 @@ export class DepartmentsController {
   @Delete(':id')
   @Roles(ERole.ADMIN)
   @ResponseMessage('Delete department successful')
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(
+    @Param('id', EntityExistPipe(DepartmentEntity, 'id')) id: number,
+  ) {
     return this.departmentsService.removeDepartment(id);
   }
 }

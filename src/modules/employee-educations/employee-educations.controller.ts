@@ -1,6 +1,7 @@
 import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { User } from '@/common/decorators/user.decorator';
+import { EntityExistPipe } from '@/common/pipes/validate-exist.pipe';
 import { type IUser } from '@/common/types/user.type';
 import {
   Body,
@@ -13,11 +14,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto';
 import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
 import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
 import { EmployeeEducationsService } from './employee-educations.service';
-import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
+import { EmployeeEducationEntity } from './entities/employee-education.entity';
 
 @Controller('employee-educations')
 export class EmployeeEducationsController {
@@ -28,7 +30,7 @@ export class EmployeeEducationsController {
   @Post()
   @Roles(ERole.ADMIN)
   create(
-    @Body(ExistEmployeeBodyPipe)
+    @Body(EntityExistPipe(EmployeeEntity, 'employeeId'))
     createEmployeeEducationDto: CreateEmployeeEducationDto,
   ) {
     return this.employeeEducationsService.create(createEmployeeEducationDto);
@@ -60,20 +62,21 @@ export class EmployeeEducationsController {
   @Patch(':id')
   @Roles(ERole.ADMIN)
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', EntityExistPipe(EmployeeEducationEntity, 'id'))
+    educationId: number,
     @Body() updateEmployeeEducationDto: UpdateEmployeeEducationDto,
-    @User() actor: IUser,
   ) {
     return this.employeeEducationsService.update(
-      id,
+      educationId,
       updateEmployeeEducationDto,
-      actor,
     );
   }
 
   @Delete(':id')
   @Roles(ERole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', EntityExistPipe(EmployeeEducationEntity, 'id')) id: number,
+  ) {
     return this.employeeEducationsService.remove(id);
   }
 }

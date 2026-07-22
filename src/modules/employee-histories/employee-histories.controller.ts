@@ -17,7 +17,10 @@ import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
 import SearchHistoryQueryDto from './dto/search-history-query.dto';
 import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
 import { EmployeeHistoriesService } from './employee-histories.service';
-import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
+import { EntityExistPipe } from '@/common/pipes/validate-exist.pipe';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { DepartmentEntity } from '../departments/entities/department.entity';
+import { EmploymentHistoryEntity } from './entities/employment-history.entity';
 
 @Controller('employee-histories')
 export class EmployeeHistoriesController {
@@ -28,7 +31,10 @@ export class EmployeeHistoriesController {
   @Post()
   @Roles(ERole.ADMIN)
   create(
-    @Body(ExistEmployeeBodyPipe)
+    @Body(
+      EntityExistPipe(EmployeeEntity, 'employeeId'),
+      EntityExistPipe(DepartmentEntity, 'departmentId'),
+    )
     createEmployeeHistoryDto: CreateEmployeeHistoryDto,
   ) {
     return this.employeeHistoriesService.create(createEmployeeHistoryDto);
@@ -54,15 +60,23 @@ export class EmployeeHistoriesController {
   @Patch(':id')
   @Roles(ERole.ADMIN)
   update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateEmployeeHistoryDto: UpdateEmployeeHistoryDto,
+    @Param('id', EntityExistPipe(EmploymentHistoryEntity, 'id'))
+    employmentHistoryId: number,
+    @Body(EntityExistPipe(DepartmentEntity, 'departmentId'))
+    updateEmployeeHistoryDto: UpdateEmployeeHistoryDto,
   ) {
-    return this.employeeHistoriesService.update(id, updateEmployeeHistoryDto);
+    return this.employeeHistoriesService.update(
+      employmentHistoryId,
+      updateEmployeeHistoryDto,
+    );
   }
 
   @Delete(':id')
   @Roles(ERole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.employeeHistoriesService.remove(id);
+  remove(
+    @Param('id', EntityExistPipe(EmploymentHistoryEntity, 'id'))
+    employmentHistoryId: number,
+  ) {
+    return this.employeeHistoriesService.remove(employmentHistoryId);
   }
 }

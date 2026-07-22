@@ -145,14 +145,6 @@ export class DepartmentsService {
 
   async updateDepartment(id: number, updateDepartmentDto: UpdateDepartmentDto) {
     try {
-      const departmentInfo = await this.departmentRepository.findOne({
-        where: { id },
-      });
-
-      if (!departmentInfo) {
-        throw new NotFoundException('Department not found');
-      }
-
       if (updateDepartmentDto.managerId) {
         const [employeeInfo, checkManager] = await Promise.all([
           this.employeeRepository.findOne({
@@ -188,9 +180,7 @@ export class DepartmentsService {
 
       try {
         await this.departmentRepository.update(id, updateDepartmentDto);
-        this.logger.log(
-          `Department ${departmentInfo.name} updated successfully`,
-        );
+        this.logger.log(`Department ${id} updated successfully`);
         return 'Update department successful';
       } catch (error: any) {
         if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
@@ -214,17 +204,9 @@ export class DepartmentsService {
 
   async removeDepartment(id: number) {
     try {
-      const departmentInfo = await this.departmentRepository.findOne({
-        where: { id },
-      });
-
-      if (!departmentInfo) {
-        throw new NotFoundException('Department not found');
-      }
-
       await this.departmentRepository.softDelete(id);
 
-      this.logger.log(`Department ${departmentInfo.name} deleted successfully`);
+      this.logger.log(`Department ${id} deleted successfully`);
       return 'Delete department successful';
     } catch (error: any) {
       if (error instanceof HttpException) {

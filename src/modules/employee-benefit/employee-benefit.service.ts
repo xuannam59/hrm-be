@@ -198,10 +198,6 @@ export class EmployeeBenefitService {
 
       const employeeBenefit = await queryBuilder.getOne();
 
-      if (!employeeBenefit) {
-        throw new BadRequestException('Employee benefit not found');
-      }
-
       return employeeBenefit;
     } catch (error: any) {
       if (error instanceof HttpException) {
@@ -304,18 +300,7 @@ export class EmployeeBenefitService {
 
   async remove(benefitId: number) {
     try {
-      const employeeBenefit = await this.employeeBenefitRepository.findOne({
-        where: {
-          id: benefitId,
-        },
-      });
-
-      if (!employeeBenefit) {
-        throw new BadRequestException('Employee benefit not found');
-      }
-
       await this.employeeBenefitRepository.softDelete(benefitId);
-
       return 'Employee benefit removed successfully';
     } catch (error: any) {
       if (error instanceof HttpException) {

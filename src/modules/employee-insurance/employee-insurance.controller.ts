@@ -1,5 +1,6 @@
 import { ERole } from '@/common/constants/user.constant';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { EntityExistPipe } from '@/common/pipes/validate-exist.pipe';
 import {
   Body,
   Controller,
@@ -11,11 +12,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeInsuranceDto } from './dto/create-employee-insurance.dto';
 import { SearchEmployeeInsuranceQueryDto } from './dto/search-employee-insurance-query.dto';
 import { UpdateEmployeeInsuranceDto } from './dto/update-employee-insurance.dto';
 import { EmployeeInsuranceService } from './employee-insurance.service';
-import { ExistEmployeeBodyPipe } from '@/common/pipes/validate-exist.pipe';
+import { EmployeeInsuranceEntity } from './entities/employee-insurance.entity';
 
 @Controller('employee-insurance')
 export class EmployeeInsuranceController {
@@ -26,7 +28,7 @@ export class EmployeeInsuranceController {
   @Post()
   @Roles(ERole.ADMIN)
   create(
-    @Body(ExistEmployeeBodyPipe)
+    @Body(EntityExistPipe(EmployeeEntity, 'employeeId'))
     createEmployeeInsuranceDto: CreateEmployeeInsuranceDto,
   ) {
     return this.employeeInsuranceService.create(createEmployeeInsuranceDto);
@@ -47,7 +49,7 @@ export class EmployeeInsuranceController {
   @Patch(':id')
   @Roles(ERole.ADMIN)
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', EntityExistPipe(EmployeeInsuranceEntity, 'id')) id: number,
     @Body() updateEmployeeInsuranceDto: UpdateEmployeeInsuranceDto,
   ) {
     return this.employeeInsuranceService.update(id, updateEmployeeInsuranceDto);
@@ -55,7 +57,9 @@ export class EmployeeInsuranceController {
 
   @Delete(':id')
   @Roles(ERole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(
+    @Param('id', EntityExistPipe(EmployeeInsuranceEntity, 'id')) id: number,
+  ) {
     return this.employeeInsuranceService.remove(id);
   }
 }

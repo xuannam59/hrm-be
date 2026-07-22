@@ -237,30 +237,14 @@ export class EmployeeEducationsService {
   }
 
   async update(
-    id: number,
+    educationId: number,
     updateEmployeeEducationDto: UpdateEmployeeEducationDto,
-    actor: IUser,
   ) {
     try {
       const { school, degree, fieldOfStudy, startYear, endYear } =
         updateEmployeeEducationDto;
 
-      const employeeEducation = await this.employeeEducationRepository.findOne({
-        where: { id },
-        select: { id: true, employeeId: true },
-      });
-
-      if (!employeeEducation) {
-        throw new NotFoundException('Employee education not found');
-      }
-
-      if (actor.role !== ERole.ADMIN) {
-        if (employeeEducation.employeeId !== actor.employee.id) {
-          throw new ForbiddenException('You are not authorized');
-        }
-      }
-
-      await this.employeeEducationRepository.update(id, {
+      await this.employeeEducationRepository.update(educationId, {
         school,
         degree,
         fieldOfStudy,
@@ -285,15 +269,6 @@ export class EmployeeEducationsService {
 
   async remove(id: number) {
     try {
-      const employeeEducation = await this.employeeEducationRepository.findOne({
-        where: { id },
-        select: { id: true, employeeId: true },
-      });
-
-      if (!employeeEducation) {
-        throw new NotFoundException('Employee education not found');
-      }
-
       await this.employeeEducationRepository.softDelete(id);
       return 'Employee education deleted successfully';
     } catch (error: any) {

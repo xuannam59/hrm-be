@@ -163,10 +163,6 @@ export class EmployeeInsuranceService {
 
       const employeeInsurance = await queryBuilder.getOne();
 
-      if (!employeeInsurance) {
-        throw new BadRequestException('Employee insurance not found');
-      }
-
       return employeeInsurance;
     } catch (error: any) {
       if (error instanceof HttpException) {
@@ -189,14 +185,6 @@ export class EmployeeInsuranceService {
     try {
       const { insuranceType, insuranceNumber, startDate, endDate } =
         updateEmployeeInsuranceDto;
-
-      const employeeInsurance = await this.employeeInsuranceRepository.findOne({
-        where: { id: insuranceId },
-      });
-
-      if (!employeeInsurance) {
-        throw new BadRequestException('Employee insurance not found');
-      }
 
       await this.employeeInsuranceRepository.update(insuranceId, {
         insuranceType,
@@ -222,14 +210,6 @@ export class EmployeeInsuranceService {
 
   async remove(insuranceId: number) {
     try {
-      const employeeInsurance = await this.employeeInsuranceRepository.findOne({
-        where: { id: insuranceId },
-      });
-
-      if (!employeeInsurance) {
-        throw new BadRequestException('Employee insurance not found');
-      }
-
       await this.employeeInsuranceRepository.softDelete(insuranceId);
       return 'Deleted successfully';
     } catch (error: any) {

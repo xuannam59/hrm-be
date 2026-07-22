@@ -40,28 +40,18 @@ export class EmployeeHistoriesService {
         throw new BadRequestException('Start date must be before end date');
       }
 
-      const [department, existingEmploymentHistory] = await Promise.all([
-        this.departmentRepository.findOne({
-          where: { id: createEmployeeHistoryDto.departmentId },
-          select: { id: true },
-        }),
-        this.employmentHistoryRepository
-          .createQueryBuilder('employmentHistory')
-          .where('employmentHistory.employeeId = :employeeId', {
-            employeeId: createEmployeeHistoryDto.employeeId,
-          })
-          .select([
-            'employmentHistory.id',
-            'employmentHistory.endDate',
-            'employmentHistory.startDate',
-          ])
-          .orderBy('employmentHistory.id', 'DESC')
-          .getOne(),
-      ]);
-
-      if (!department) {
-        throw new NotFoundException('Department not found');
-      }
+      const existingEmploymentHistory = await this.employmentHistoryRepository
+        .createQueryBuilder('employmentHistory')
+        .where('employmentHistory.employeeId = :employeeId', {
+          employeeId: createEmployeeHistoryDto.employeeId,
+        })
+        .select([
+          'employmentHistory.id',
+          'employmentHistory.endDate',
+          'employmentHistory.startDate',
+        ])
+        .orderBy('employmentHistory.id', 'DESC')
+        .getOne();
 
       if (existingEmploymentHistory) {
         const newStart = new Date(createEmployeeHistoryDto.startDate);
@@ -94,7 +84,7 @@ export class EmployeeHistoriesService {
           EmploymentHistoryEntity,
           {
             employeeId: createEmployeeHistoryDto.employeeId,
-            departmentId: department.id,
+            departmentId: createEmployeeHistoryDto.departmentId,
             position: createEmployeeHistoryDto.position,
             startDate: createEmployeeHistoryDto.startDate,
             endDate: createEmployeeHistoryDto.endDate ?? null,
@@ -307,16 +297,6 @@ export class EmployeeHistoriesService {
         throw new BadRequestException('Start date must be before end date');
       }
 
-      if (updateEmployeeHistoryDto.departmentId) {
-        const department = await this.departmentRepository.findOne({
-          where: { id: updateEmployeeHistoryDto.departmentId },
-          select: { id: true },
-        });
-        if (!department) {
-          throw new NotFoundException('Department not found');
-        }
-      }
-
       const employmentHistory = await this.employmentHistoryRepository.findOne({
         where: { id: employmentHistoryId },
         select: { id: true, endDate: true, startDate: true },
@@ -351,16 +331,9 @@ export class EmployeeHistoriesService {
 
   async remove(employmentHistoryId: number) {
     try {
-      const employmentHistory = await this.employmentHistoryRepository.findOne({
-        where: { id: employmentHistoryId },
-        select: { id: true },
-      });
-      if (!employmentHistory) {
-        throw new NotFoundException('Employment history not found');
-      }
       await this.employmentHistoryRepository.delete(employmentHistoryId);
       this.logger.log(
-        `Employment history deleted successfully for employee ${employmentHistory.employeeId}`,
+        `Employment history deleted successfully for employee ${employmentHistoryId}`,
       );
       return 'Employment history deleted successfully';
     } catch (error: any) {
