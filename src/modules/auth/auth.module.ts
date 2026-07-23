@@ -10,6 +10,7 @@ import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { DiscoveryModule } from '@nestjs/core';
+import { RefreshTokenEntity } from '../users/entities/refresh_token.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { DiscoveryModule } from '@nestjs/core';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, RefreshTokenEntity]),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],

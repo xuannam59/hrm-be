@@ -15,12 +15,13 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request, Response } from 'express';
 import ms, { type StringValue } from 'ms';
-import { Not, Repository } from 'typeorm';
+import { MoreThan, Not, Repository } from 'typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { generateRandomString } from '@/common/utils/string.util';
 import { CACHE_MANAGER, type Cache } from '@nestjs/cache-manager';
+import { RefreshTokenEntity } from '../users/entities/refresh_token.entity';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(RefreshTokenEntity)
+    private readonly refreshTokenRepository: Repository<RefreshTokenEntity>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
@@ -86,7 +89,7 @@ export class AuthService {
 
       const accessToken = this.jwtService.sign(payloadToken);
 
-      const refreshToken = this.createRefreshToken(payloadToken);
+      const refreshToken = await this.createRefreshToken(user.id);
 
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
@@ -150,18 +153,32 @@ export class AuthService {
     }
   }
 
-  async refreshToken(req: Request, res: Response) {
+  async refreshToken(res: Response, refreshToken: string) {
     try {
-      const refreshToken = req.cookies.refresh_token;
-      const decoded: IPayloadToken = this.jwtService.verify(refreshToken, {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      const validRefreshToken = await this.refreshTokenRepository.findOne({
+        where: {
+          value: refreshToken,
+          expiresAt: MoreThan(new Date()),
+        },
+        relations: {
+          user: true,
+        },
+        select: {
+          id: true,
+          expiresAt: true,
+          user: {
+            id: true,
+            email: true,
+            status: true,
+          },
+        },
       });
 
-      const user = await this.usersService.findByEmail(decoded.email);
-
-      if (!user) {
-        throw new BadRequestException('User not found');
+      if (!validRefreshToken || !validRefreshToken.user) {
+        throw new BadRequestException('Refresh token is invalid or expired');
       }
+
+      const user = validRefreshToken.user;
 
       const payloadToken: IPayloadToken = {
         email: user.email,
@@ -170,7 +187,9 @@ export class AuthService {
       };
 
       const accessToken = this.jwtService.sign(payloadToken);
-      const newRefreshToken = this.createRefreshToken(payloadToken);
+      const newRefreshToken = await this.updateRefreshToken(
+        validRefreshToken.id,
+      );
 
       res.cookie('refresh_token', newRefreshToken, {
         httpOnly: true,
@@ -184,16 +203,14 @@ export class AuthService {
       };
     } catch (error: any) {
       res.clearCookie('refresh_token');
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new BadRequestException('Refresh token is invalid or expired');
+      throw error;
     }
   }
 
   async logout(req: Request, res: Response, user: IUser) {
     try {
       const authorization = req.headers.authorization;
+      const refreshToken: string = req.cookies.refresh_token;
       const accessToken = authorization ? authorization.split(' ')[1] : '';
       await this.cacheManager.del(`blacklist_token:${user.id}`);
       await this.cacheManager.set(
@@ -201,6 +218,12 @@ export class AuthService {
         accessToken,
         ms(this.configService.get<StringValue>('JWT_ACCESS_EXPIRES', '15m')),
       );
+      if (refreshToken) {
+        await this.refreshTokenRepository.softDelete({
+          value: refreshToken,
+          userId: user.id,
+        });
+      }
       res.clearCookie('refresh_token');
       return 'Logout successful';
     } catch (error: any) {
@@ -298,10 +321,83 @@ export class AuthService {
       }
     }
   }
-  private createRefreshToken(payloadToken: IPayloadToken) {
-    return this.jwtService.sign(payloadToken, {
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES', '7d'),
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
+
+  async getListRefreshToken(user: IUser, page: number = 1, limit: number = 10) {
+    try {
+      const skip = (page - 1) * limit;
+      const [refreshTokens, total] =
+        await this.refreshTokenRepository.findAndCount({
+          where: { userId: user.id },
+          skip,
+          take: limit,
+          order: {
+            createdAt: 'DESC',
+          },
+        });
+      return {
+        results: refreshTokens,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+    }
+  }
+
+  async revokeRefreshToken(refreshTokenId: number, user: IUser) {
+    try {
+      const record = await this.refreshTokenRepository.findOne({
+        where: {
+          id: refreshTokenId,
+          userId: user.id,
+        },
+      });
+
+      if (!record) {
+        throw new BadRequestException('Refresh token not found');
+      }
+
+      await this.refreshTokenRepository.softDelete(refreshTokenId);
+      return 'Revoke refresh token successful';
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message ?? 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  private async createRefreshToken(userId: number) {
+    const refreshToken = await this.refreshTokenRepository.save({
+      value: generateRandomString(20),
+      expiresAt: new Date(
+        Date.now() +
+          ms(this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d')),
+      ),
+      userId: userId,
     });
+    return refreshToken.value;
+  }
+
+  private async updateRefreshToken(refreshTokenId: number) {
+    const value = generateRandomString(20);
+    await this.refreshTokenRepository.update(refreshTokenId, {
+      value,
+      expiresAt: new Date(
+        Date.now() +
+          ms(this.configService.get<StringValue>('JWT_REFRESH_EXPIRES', '7d')),
+      ),
+    });
+    return value;
   }
 }

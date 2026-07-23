@@ -1,7 +1,8 @@
 import { BaseEntity } from '@/common/bases/entity.base';
 import { ERole, EUserStatus } from '@/common/constants/user.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { RefreshTokenEntity } from './refresh_token.entity';
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -33,4 +34,7 @@ export class UserEntity extends BaseEntity {
   @OneToOne(() => EmployeeEntity, (employee) => employee.user)
   @JoinColumn({ name: 'employee_id' })
   employee!: EmployeeEntity;
+
+  @OneToMany(() => RefreshTokenEntity, (refreshToken) => refreshToken.user)
+  refreshTokens!: RefreshTokenEntity[];
 }

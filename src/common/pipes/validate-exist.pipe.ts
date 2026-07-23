@@ -51,7 +51,7 @@ export function EntityExistPipe<T extends ObjectLiteral>(
 
       const repository = this.dataSource.getRepository(entity);
 
-      const recordExists = await repository.findOne({
+      const recordExists = await repository.exists({
         where: { id },
       });
 

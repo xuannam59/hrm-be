@@ -5,13 +5,16 @@ import { User } from '@/common/decorators/user.decorator';
 import { LocalAuthGuard } from '@/common/guards/local-auth.guard';
 import { type IUser } from '@/common/types/user.type';
 import {
+  BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -58,7 +61,30 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.refreshToken(req, res);
+    const refreshToken: string = req.cookies.refresh_token;
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is invalid');
+    }
+    return this.authService.refreshToken(res, refreshToken);
+  }
+
+  @Get('list-refresh-token')
+  @ResponseMessage('List refresh token successful')
+  async listRefreshToken(
+    @User() user: IUser,
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.authService.getListRefreshToken(user, page, limit);
+  }
+
+  @Delete('refresh-token/:id')
+  @ResponseMessage('Delete refresh token successful')
+  async revokeRefreshToken(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: IUser,
+  ) {
+    return this.authService.revokeRefreshToken(id, user);
   }
 
   @Post('logout')
