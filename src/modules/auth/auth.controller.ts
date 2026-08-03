@@ -71,20 +71,29 @@ export class AuthController {
   @Get('list-refresh-token')
   @ResponseMessage('List refresh token successful')
   async listRefreshToken(
+    @Req() req: Request,
     @User() user: IUser,
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
   ) {
-    return this.authService.getListRefreshToken(user, page, limit);
+    const refreshToken: string = req.cookies.refresh_token;
+    return this.authService.getListRefreshToken(
+      refreshToken,
+      user,
+      page,
+      limit,
+    );
   }
 
   @Delete('refresh-token/:id')
   @ResponseMessage('Delete refresh token successful')
   async revokeRefreshToken(
+    @Req() req: Request,
     @Param('id', ParseIntPipe) id: number,
     @User() user: IUser,
   ) {
-    return this.authService.revokeRefreshToken(id, user);
+    const refreshToken: string = req.cookies.refresh_token;
+    return this.authService.revokeRefreshToken(id, refreshToken, user);
   }
 
   @Post('logout')

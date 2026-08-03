@@ -322,7 +322,12 @@ export class AuthService {
     }
   }
 
-  async getListRefreshToken(user: IUser, page: number = 1, limit: number = 10) {
+  async getListRefreshToken(
+    refreshToken: string,
+    user: IUser,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     try {
       const skip = (page - 1) * limit;
       const [refreshTokens, total] =
@@ -333,9 +338,28 @@ export class AuthService {
           order: {
             createdAt: 'DESC',
           },
+          select: {
+            id: true,
+            userId: true,
+            value: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         });
+
+      const results = refreshTokens.map((item) => {
+        const isCurrent = item.value === refreshToken;
+        return {
+          id: item.id,
+          userId: item.userId,
+          isCurrent,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        };
+      });
+
       return {
-        results: refreshTokens,
+        results,
         pagination: {
           total,
           page,
@@ -350,11 +374,16 @@ export class AuthService {
     }
   }
 
-  async revokeRefreshToken(refreshTokenId: number, user: IUser) {
+  async revokeRefreshToken(
+    refreshTokenId: number,
+    refreshToken: string,
+    user: IUser,
+  ) {
     try {
       const record = await this.refreshTokenRepository.findOne({
         where: {
           id: refreshTokenId,
+          value: Not(refreshToken),
           userId: user.id,
         },
       });
