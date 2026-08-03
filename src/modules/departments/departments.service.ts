@@ -5,24 +5,32 @@ import {
   HttpStatus,
   Injectable,
   Logger,
-  NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { EmployeesService } from '../employees/employees.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import SearchDepartmentQueryDto from './dto/search-department-query.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DepartmentEntity } from './entities/department.entity';
+import { ModuleRef } from '@nestjs/core';
 
 @Injectable()
-export class DepartmentsService {
+export class DepartmentsService implements OnModuleInit {
+  private employeesService!: EmployeesService;
+
   constructor(
     @InjectRepository(DepartmentEntity)
     private readonly departmentRepository: Repository<DepartmentEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
+    private moduleRef: ModuleRef,
   ) {}
+
+  async onModuleInit() {
+    this.employeesService = await this.moduleRef.get(EmployeesService, {
+      strict: false,
+    });
+  }
 
   private readonly logger = new Logger(DepartmentsService.name);
 
@@ -30,22 +38,11 @@ export class DepartmentsService {
     try {
       if (createDepartmentDto.managerId) {
         const [employeeInfo, checkManager] = await Promise.all([
-          this.employeeRepository.findOne({
-            where: { id: createDepartmentDto.managerId },
-            relations: { user: true },
-            select: {
-              id: true,
-              user: { id: true, role: true },
-            },
-          }),
+          this.employeesService.getEmployeeById(createDepartmentDto.managerId),
           this.departmentRepository.exists({
             where: { managerId: createDepartmentDto.managerId },
           }),
         ]);
-
-        if (!employeeInfo) {
-          throw new NotFoundException('Employee not found');
-        }
 
         if (checkManager) {
           throw new BadRequestException(
@@ -147,27 +144,13 @@ export class DepartmentsService {
     try {
       if (updateDepartmentDto.managerId) {
         const [employeeInfo, checkManager] = await Promise.all([
-          this.employeeRepository.findOne({
-            where: { id: updateDepartmentDto.managerId },
-            relations: { user: true },
-            select: {
-              id: true,
-              user: { id: true, role: true },
-            },
-          }),
+          this.employeesService.getEmployeeById(updateDepartmentDto.managerId),
           this.departmentRepository.exists({
-            where: {
-              managerId: updateDepartmentDto.managerId,
-              id: Not(id),
-            },
+            where: { managerId: updateDepartmentDto.managerId, id: Not(id) },
           }),
         ]);
 
-        if (!employeeInfo) {
-          throw new NotFoundException('Employee not found');
-        }
-
-        if (employeeInfo.user && employeeInfo.user.role !== ERole.MANAGER) {
+        if (!employeeInfo.user || employeeInfo.user.role !== ERole.MANAGER) {
           throw new BadRequestException('Employee is not a manager');
         }
 
@@ -214,6 +197,45 @@ export class DepartmentsService {
       }
       throw new HttpException(
         error?.message ?? 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async checkExists(id: number) {
+    try {
+      const department = await this.departmentRepository.exists({
+        where: { id },
+      });
+      return department;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async getList() {
+    try {
+      const departments = await this.departmentRepository.find({
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+      return departments;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

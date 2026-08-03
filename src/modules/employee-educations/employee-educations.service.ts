@@ -5,7 +5,6 @@ import {
 import { ERole } from '@/common/constants/user.constant';
 import { IUser } from '@/common/types/user.type';
 import {
-  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -13,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeEducationDto } from './dto/create-employee-education.dto';
 import { SearchEmployeeEducationQueryDto } from './dto/search-employee-education-query.dto';
 import { UpdateEmployeeEducationDto } from './dto/update-employee-education.dto';
@@ -24,8 +22,6 @@ export class EmployeeEducationsService {
   constructor(
     @InjectRepository(EmployeeEducationEntity)
     private readonly employeeEducationRepository: Repository<EmployeeEducationEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
   ) {}
 
   async create(createEmployeeEducationDto: CreateEmployeeEducationDto) {

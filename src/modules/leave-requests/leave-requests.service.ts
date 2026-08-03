@@ -1,17 +1,16 @@
 import {
+  EAttendanceStatus,
   END_WORK_TIME,
   START_WORK_TIME,
   WORK_HOURS,
 } from '@/common/constants/attendance.constant';
-import { EAttendanceStatus } from '@/common/constants/attendance.constant';
 import { EBenefitType } from '@/common/constants/benefit.constant';
-import { IPaginationResponse } from '@/common/types/common.type';
-import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import {
   ELeaveRequestStatus,
   ELeaveType,
 } from '@/common/constants/leave-request.constant';
-import { ERole, EUserStatus } from '@/common/constants/user.constant';
+import { ERole } from '@/common/constants/user.constant';
+import { IPaginationResponse } from '@/common/types/common.type';
 import { IUser } from '@/common/types/user.type';
 import {
   getEarliestLeaveRequestDate,
@@ -31,12 +30,11 @@ import {
   DataSource,
   IsNull,
   MoreThanOrEqual,
-  Not,
   Repository,
 } from 'typeorm';
 import { AttendanceEntity } from '../attendance/entities/attendance.entity';
 import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
+import { EmployeesService } from '../employees/employees.service';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import {
   SearchLeaveQueryDto,
@@ -53,10 +51,7 @@ export class LeaveRequestsService {
   constructor(
     @InjectRepository(LeaveRequestEntity)
     private readonly leaveRequestRepository: Repository<LeaveRequestEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
-    @InjectRepository(EmployeeBenefitEntity)
-    private readonly employeeBenefitRepository: Repository<EmployeeBenefitEntity>,
+    private readonly employeesService: EmployeesService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -65,33 +60,7 @@ export class LeaveRequestsService {
       const { approverId, startDate, endDate, leaveType, reason } =
         createLeaveRequestDto;
 
-      const approverInfo = await this.employeeRepository.findOne({
-        where: {
-          id: approverId,
-          status: EEmployeeStatus.WORKING,
-          user: {
-            status: EUserStatus.ACTIVE,
-            role: Not(ERole.EMPLOYEE),
-          },
-        },
-        relations: {
-          user: true,
-        },
-        select: {
-          id: true,
-          departmentId: true,
-          status: true,
-          user: {
-            id: true,
-            role: true,
-            status: true,
-          },
-        },
-      });
-
-      if (!approverInfo) {
-        throw new NotFoundException('Approver not found');
-      }
+      const approverInfo = await this.employeesService.getApprover(approverId);
 
       if (
         actor.role === ERole.EMPLOYEE &&

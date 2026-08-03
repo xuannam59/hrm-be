@@ -41,11 +41,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, DataSource, In, IsNull, Repository } from 'typeorm';
-import { DepartmentEntity } from '../departments/entities/department.entity';
+import { Brackets, DataSource, IsNull, Not, Repository } from 'typeorm';
+import { DepartmentsService } from '../departments/departments.service';
 import { EmployeeBenefitEntity } from '../employee-benefit/entities/employee-benefit.entity';
 import { EmploymentHistoryEntity } from '../employee-histories/entities/employment-history.entity';
 import { UserEntity } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 import CreateEmployeeDto from './dto/create-employee.dto';
 import SearchEmployeeQueryDto from './dto/search-employee-query.dto';
 import UpdateEmployeeProfileDto from './dto/update-employee-profile.dto';
@@ -57,10 +58,8 @@ export class EmployeesService {
   constructor(
     @InjectRepository(EmployeeEntity)
     private readonly employeeRepository: Repository<EmployeeEntity>,
-    @InjectRepository(DepartmentEntity)
-    private readonly departmentRepository: Repository<DepartmentEntity>,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    private readonly departmentsService: DepartmentsService,
+    private readonly usersService: UsersService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -237,19 +236,17 @@ export class EmployeesService {
 
   async createEmployee(createEmployeeDto: CreateEmployeeDto) {
     try {
-      const departmentInfo = await this.departmentRepository.findOne({
-        where: { id: createEmployeeDto.departmentId },
-      });
+      const departmentInfo = await this.departmentsService.checkExists(
+        createEmployeeDto.departmentId,
+      );
 
       if (!departmentInfo) {
         throw new NotFoundException('Department not found');
       }
-
       if (createEmployeeDto.account) {
-        const userInfo = await this.userRepository.findOne({
-          where: { email: createEmployeeDto.account.email },
-          select: { id: true },
-        });
+        const userInfo = await this.usersService.checkEmailExists(
+          createEmployeeDto.account.email,
+        );
 
         if (userInfo) {
           throw new BadRequestException('Email already exists');
@@ -372,9 +369,7 @@ export class EmployeesService {
             },
           },
         }),
-        this.userRepository.exists({
-          where: { email: provisionAccountDto.email },
-        }),
+        this.usersService.checkEmailExists(provisionAccountDto.email),
       ]);
 
       if (!employeeInfo) {
@@ -457,9 +452,10 @@ export class EmployeesService {
       }
 
       if (updateEmployeeDto.departmentId) {
-        const departmentInfo = await this.departmentRepository.findOne({
-          where: { id: updateEmployeeDto.departmentId },
-        });
+        const departmentInfo = await this.departmentsService.checkExists(
+          updateEmployeeDto.departmentId,
+        );
+
         if (!departmentInfo) {
           throw new NotFoundException('Department not found');
         }
@@ -610,12 +606,7 @@ export class EmployeesService {
 
       const data = convertEmployeeDataToObject(csvData);
 
-      const departments = await this.departmentRepository.find({
-        select: {
-          id: true,
-          name: true,
-        },
-      });
+      const departments = await this.departmentsService.getList();
 
       const departmentIdSet = new Set(
         departments.map((department) => department.id),
@@ -630,10 +621,7 @@ export class EmployeesService {
       const existingEmailSet = new Set<string>();
 
       if (emails.length > 0) {
-        const existingEmails = await this.userRepository.find({
-          where: { email: In(emails) },
-          select: { email: true },
-        });
+        const existingEmails = await this.usersService.findByEmails(emails);
 
         existingEmails.forEach((e) => existingEmailSet.add(e.email));
       }
@@ -782,6 +770,81 @@ export class EmployeesService {
       }
 
       return { imported, failedChunks };
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async getEmployeeById(employeeId: number) {
+    try {
+      const employeeInfo = await this.employeeRepository.findOne({
+        where: { id: employeeId, status: EEmployeeStatus.WORKING },
+        relations: { user: true },
+        select: {
+          id: true,
+          status: true,
+          user: {
+            id: true,
+            role: true,
+          },
+        },
+      });
+
+      if (!employeeInfo) {
+        throw new NotFoundException('Employee not found');
+      }
+
+      return employeeInfo;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async getApprover(approverId: number) {
+    try {
+      const approverInfo = await this.employeeRepository.findOne({
+        where: {
+          id: approverId,
+          status: EEmployeeStatus.WORKING,
+          user: {
+            status: EUserStatus.ACTIVE,
+            role: Not(ERole.EMPLOYEE),
+          },
+        },
+        relations: {
+          user: true,
+        },
+        select: {
+          id: true,
+          departmentId: true,
+          status: true,
+          user: {
+            id: true,
+            role: true,
+            status: true,
+          },
+        },
+      });
+
+      if (!approverInfo) {
+        throw new NotFoundException('Approver not found');
+      }
+
+      return approverInfo;
     } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;

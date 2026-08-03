@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { SearchUserQueryDto } from './dto/search-user-query.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -273,6 +273,42 @@ export class UsersService {
         },
       });
       return user;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async checkEmailExists(email: string) {
+    try {
+      const user = await this.userRepository.exists({
+        where: { email },
+      });
+      return user;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error?.message || 'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async findByEmails(emails: (string | undefined)[]) {
+    try {
+      const users = await this.userRepository.find({
+        where: { email: In(emails) },
+      });
+      return users;
     } catch (error: any) {
       if (error instanceof HttpException) {
         throw error;

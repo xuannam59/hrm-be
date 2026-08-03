@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, MoreThanOrEqual, Or, Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeBenefitDto } from './dto/create-employee-benefit.dto';
 import { SearchEmployeeBenefitQueryDto } from './dto/search-employee-benefit-query.dto';
 import { UpdateEmployeeBenefitDto } from './dto/update-employee-benefit.dto';
@@ -26,8 +25,6 @@ export class EmployeeBenefitService {
   constructor(
     @InjectRepository(EmployeeBenefitEntity)
     private readonly employeeBenefitRepository: Repository<EmployeeBenefitEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
     private readonly dataSource: DataSource,
   ) {}
 

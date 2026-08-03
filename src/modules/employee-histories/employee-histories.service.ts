@@ -10,8 +10,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { DepartmentEntity } from '../departments/entities/department.entity';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeHistoryDto } from './dto/create-employee-history.dto';
 import SearchHistoryQueryDto from './dto/search-history-query.dto';
 import { UpdateEmployeeHistoryDto } from './dto/update-employee-history.dto';
@@ -22,10 +20,6 @@ export class EmployeeHistoriesService {
   constructor(
     @InjectRepository(EmploymentHistoryEntity)
     private readonly employmentHistoryRepository: Repository<EmploymentHistoryEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
-    @InjectRepository(DepartmentEntity)
-    private readonly departmentRepository: Repository<DepartmentEntity>,
     private readonly dataSource: DataSource,
   ) {}
   private readonly logger = new Logger(EmployeeHistoriesService.name);

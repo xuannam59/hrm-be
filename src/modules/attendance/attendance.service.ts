@@ -2,7 +2,6 @@ import {
   EAttendanceStatus,
   START_WORK_TIME,
 } from '@/common/constants/attendance.constant';
-import { EEmployeeStatus } from '@/common/constants/employee.constant';
 import { ERole } from '@/common/constants/user.constant';
 import { IPaginationResponse } from '@/common/types/common.type';
 import { IUser } from '@/common/types/user.type';
@@ -24,40 +23,35 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import {
   SearchAttendanceQueryDto,
   SearchMyAttendanceQueryDto,
 } from './dto/sreach-attendance-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { AttendanceEntity } from './entities/attendance.entity';
+import { EmployeesService } from '../employees/employees.service';
 
 @Injectable()
 export class AttendanceService {
   constructor(
     @InjectRepository(AttendanceEntity)
     private readonly attendanceRepository: Repository<AttendanceEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
+    private readonly employeesService: EmployeesService,
   ) {}
   private readonly logger = new Logger(AttendanceService.name);
 
   async checkIn(actor: IUser) {
     try {
-      const employee = await this.employeeRepository.findOne({
-        where: { id: actor.employee.id, status: EEmployeeStatus.WORKING },
-      });
-
-      if (!employee) {
-        throw new NotFoundException('Employee not found or not working');
-      }
+      const employeeInfo = await this.employeesService.getEmployeeById(
+        actor.employee.id,
+      );
 
       const workDate = getTodayWorkDate();
       const now = new Date();
 
       const existing = await this.attendanceRepository.findOne({
         where: {
-          employeeId: employee.id,
+          employeeId: employeeInfo.id,
           workDate,
         },
       });
@@ -67,7 +61,7 @@ export class AttendanceService {
       }
 
       const newAttendance = this.attendanceRepository.create({
-        employeeId: employee.id,
+        employeeId: employeeInfo.id,
         workDate,
         checkIn: formatLocalTime(),
         checkOut: formatLocalTime(),
@@ -78,7 +72,7 @@ export class AttendanceService {
       const saved = await this.attendanceRepository.save(newAttendance);
 
       this.logger.log(
-        `Check in successful for employee ${employee.id} on ${getTodayDate()}`,
+        `Check in successful for employee ${employeeInfo.id} on ${getTodayDate()}`,
       );
       return saved;
     } catch (error: any) {

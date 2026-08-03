@@ -2,29 +2,20 @@ import {
   ALLOWED_SORT_FIELDS_INSURANCE,
   INSURANCE_SELECT,
 } from '@/common/constants/insurance.contant';
-import { EEmployeeStatus } from '@/common/constants/employee.constant';
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { IPaginationResponse } from '@/common/types/common.type';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EmployeeEntity } from '../employees/entities/employee.entity';
 import { CreateEmployeeInsuranceDto } from './dto/create-employee-insurance.dto';
 import { SearchEmployeeInsuranceQueryDto } from './dto/search-employee-insurance-query.dto';
 import { UpdateEmployeeInsuranceDto } from './dto/update-employee-insurance.dto';
 import { EmployeeInsuranceEntity } from './entities/employee-insurance.entity';
-import { IPaginationResponse } from '@/common/types/common.type';
 
 @Injectable()
 export class EmployeeInsuranceService {
   constructor(
     @InjectRepository(EmployeeInsuranceEntity)
     private readonly employeeInsuranceRepository: Repository<EmployeeInsuranceEntity>,
-    @InjectRepository(EmployeeEntity)
-    private readonly employeeRepository: Repository<EmployeeEntity>,
   ) {}
   async create(createEmployeeInsuranceDto: CreateEmployeeInsuranceDto) {
     try {
