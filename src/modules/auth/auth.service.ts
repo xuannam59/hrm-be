@@ -22,6 +22,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { generateRandomString } from '@/common/utils/string.util';
 import { CACHE_MANAGER, type Cache } from '@nestjs/cache-manager';
 import { RefreshTokenEntity } from '../users/entities/refresh_token.entity';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +34,7 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshTokenEntity>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly notificationService: NotificationService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -103,6 +105,11 @@ export class AuthService {
       });
 
       this.logger.log(`User ${user.email} logged in successfully`);
+      this.notificationService.send(31, {
+        type: 'login',
+        fullName: user.displayName,
+        username: user.email,
+      });
       return {
         access_token: accessToken,
       };

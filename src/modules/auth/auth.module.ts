@@ -11,12 +11,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { DiscoveryModule } from '@nestjs/core';
 import { RefreshTokenEntity } from '../users/entities/refresh_token.entity';
+import { NotificationModule } from '../notifications/notification.module';
 
 @Module({
   imports: [
     DiscoveryModule,
     PassportModule,
     UsersModule,
+    NotificationModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_SECRET'),
