@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
@@ -64,7 +66,14 @@ export class AttendanceImportService {
       const errorsMessages = this.handleImportAttendance(rows);
 
       if (errorsMessages.length > 0) {
-        return errorsMessages;
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Errors in attendance import',
+            data: errorsMessages,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       const fileHash = crypto
@@ -450,7 +459,12 @@ export class AttendanceImportService {
   }
 
   async updateStatusJob(jobId: number, status: EAttendanceImportStatus) {
-    await this.attendanceImportJobsRepository.update(jobId, { status });
+    // eslint-disable-next-line no-useless-catch
+    try {
+      await this.attendanceImportJobsRepository.update(jobId, { status });
+    } catch (error) {
+      throw error;
+    }
   }
 
   private sendProgress(
