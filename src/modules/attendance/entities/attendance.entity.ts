@@ -1,5 +1,8 @@
 import { BaseEntity } from '@/common/bases/entity.base';
-import { EAttendanceStatus } from '@/common/constants/attendance.constant';
+import {
+  EAttendanceRecordType,
+  EAttendanceStatus,
+} from '@/common/constants/attendance.constant';
 import { EmployeeEntity } from '@/modules/employees/entities/employee.entity';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
@@ -29,6 +32,14 @@ export class AttendanceEntity extends BaseEntity {
 
   @Column({ type: 'enum', name: 'status', enum: EAttendanceStatus })
   status!: EAttendanceStatus;
+
+  @Column({
+    type: 'enum',
+    name: 'record_type',
+    enum: EAttendanceRecordType,
+    default: EAttendanceRecordType.OUR_HRM,
+  })
+  recordType!: EAttendanceRecordType;
 
   @ManyToOne(() => EmployeeEntity, (employee) => employee.attendances)
   @JoinColumn({ name: 'employee_id' })

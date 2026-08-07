@@ -1,10 +1,7 @@
 import * as XLSX from 'xlsx';
 
-export const readExcelFile = (
-  file: Express.Multer.File,
-  sheetIndex: number = 0,
-) => {
-  const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+export const readExcelFile = (buffer: Buffer, sheetIndex: number = 0) => {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
   const sheetName = workbook.SheetNames[sheetIndex];
   const sheet = workbook.Sheets[sheetName];
   const csvData = XLSX.utils
@@ -17,4 +14,8 @@ export const readExcelFile = (
     headers,
     csvData,
   };
+};
+
+export const sleep = async (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };

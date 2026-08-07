@@ -6,9 +6,12 @@ import {
 import { ROLE_VALUES } from '../constants/user.constant';
 import { IEmployeeImportRow } from '../types/employee.type';
 
-export const validateEmployeeImportHeaders = (headers: string[]) => {
+export const validateEmployeeImportHeaders = (
+  headers: string[],
+  targetHeaders,
+) => {
   for (let i = 0; i < headers.length; i++) {
-    if (headers[i] !== Object.values(EImportEmployeeColumns)[i]) {
+    if (headers[i] !== targetHeaders[i]) {
       return false;
     }
   }
@@ -84,7 +87,7 @@ export const validateEmployeeImport = (employee: IEmployeeImportRow) => {
   return errors;
 };
 
-const isValiDate = (dateString: string) => {
+export const isValiDate = (dateString: string) => {
   const regex = /^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$/;
 
   if (!regex.test(dateString)) return false;

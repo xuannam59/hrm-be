@@ -21,3 +21,33 @@ export enum EAttendanceType {
   IN = 'IN',
   OUT = 'OUT',
 }
+
+export enum EAttendanceRecordType {
+  OUR_HRM = 'our-hrm',
+  FROM_OLD_SYSTEM = 'from_old_system',
+}
+
+export enum EAttendanceImportStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum EAttendanceImportLogStatus {
+  PROCESSING = 'PROCESSING',
+  SUCCESS = 'SUCCESS',
+  FAILED = 'FAILED',
+  SKIPPED = 'SKIPPED',
+}
+
+export const ATTENDANCE_IMPORT_COLUMNS = {
+  COLUMNS: ['employeeId', 'workDate', 'checkIn', 'checkOut', 'status'],
+  COLUMN_INDEXES: {
+    EMPLOYEE_ID: 0,
+    WORK_DATE: 1,
+    CHECK_IN: 2,
+    CHECK_OUT: 3,
+    STATUS: 4,
+  },
+};

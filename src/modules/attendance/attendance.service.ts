@@ -23,13 +23,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EmployeesService } from '../employees/employees.service';
 import {
   SearchAttendanceQueryDto,
   SearchMyAttendanceQueryDto,
 } from './dto/sreach-attendance-query.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { AttendanceEntity } from './entities/attendance.entity';
-import { EmployeesService } from '../employees/employees.service';
 
 @Injectable()
 export class AttendanceService {

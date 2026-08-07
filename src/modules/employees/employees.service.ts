@@ -596,11 +596,17 @@ export class EmployeesService {
 
   async importEmployees(file: Express.Multer.File) {
     try {
-      const { headers, csvData } = readExcelFile(file);
+      const { headers, csvData } = readExcelFile(file.buffer);
 
       const errorsResult: IErrorRow[] = [];
 
-      if (!headers || !validateEmployeeImportHeaders(headers)) {
+      if (
+        !headers ||
+        !validateEmployeeImportHeaders(
+          headers,
+          Object.values(EImportEmployeeColumns),
+        )
+      ) {
         throw new BadRequestException('Headers is not valid format');
       }
 
