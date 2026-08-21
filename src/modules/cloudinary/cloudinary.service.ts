@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import {
   UploadApiErrorResponse,
@@ -11,6 +11,11 @@ export class CloudinaryService {
   uploadFile(
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    new Promise(() => {
+      setTimeout(() => {
+        throw BadGatewayException();
+      }, 30000);
+    });
     return new Promise<UploadApiResponse | UploadApiErrorResponse>(
       (resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
