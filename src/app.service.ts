@@ -36,7 +36,7 @@ export class AppService implements OnModuleInit {
           await this.dataSource.getRepository(DepartmentEntity).insert([
             {
               name: 'IT',
-              description: 'IT Department  ',
+              description: 'IT Department',
             },
           ]);
         }
